@@ -15,6 +15,9 @@
   function freshWater() {
     return { phase: 'briefing', challenge: false, answers: {}, design: OI.water.defaultDesign(), prediction: null, attempts: [], pendingTest: false, debrief: {}, completed: false };
   }
+  function freshBuild() {
+    return { phase: 'briefing', design: { sticks: [], material: 'bamboo', roof: 'thatch', straps: false }, settings: { magnitude: 6, wind: 130 }, prediction: null, attempts: [], pendingTest: false, debrief: {}, completed: false };
+  }
   function fresh() {
     return {
       version: 1,
@@ -22,6 +25,7 @@
       settings: { hours: 20 },
       exploration: freshExploration(),
       water: freshWater(),
+      build: freshBuild(),
       log: {} // the Island Log: results each mission leaves behind for the next
     };
   }
@@ -32,6 +36,7 @@
   state.exploration = Object.assign(freshExploration(), state.exploration);
   state.water = Object.assign(freshWater(), state.water);
   state.water.design = Object.assign(OI.water.defaultDesign(), state.water.design);
+  state.build = Object.assign(freshBuild(), state.build);
   // the landing place is always known
   const lk = OI.world.key(OI.world.LANDING.r, OI.world.LANDING.c);
   if (!state.exploration.scouted[lk]) state.exploration.scouted[lk] = ['any'];
@@ -47,6 +52,7 @@
       delete state.log.exploration;
       save();
     },
+    resetBuild() { state.build = freshBuild(); delete state.log.build; save(); },
     resetWater() { state.water = freshWater(); delete state.log.water; save(); },
     resetAll() { state = fresh(); state.exploration.scouted[lk] = ['any']; save(); }
   };

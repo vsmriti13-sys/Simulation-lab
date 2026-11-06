@@ -13,9 +13,9 @@
       subjects: ['Chemistry', 'Biology', 'Maths', 'Sustainability'],
       blurb: 'Thirty settlers arrive. Budget, collect, store and disinfect water for 30 days, through a dry spell, using the sources your team found.',
       physical: ['AquaQuest water filtration'] },
-    { id: 'build', n: 3, title: 'Build to Survive', status: 'soon', day: 'Day 3',
+    { id: 'build', n: 3, title: 'Build to Survive', status: 'open', day: 'Day 3',
       subjects: ['Physics', 'Engineering', 'Maths', 'Art'],
-      blurb: 'Design shelters for your base and test them on a virtual shake table and in storm winds. Then build the real one.',
+      blurb: 'Build a shelter frame from sticks and marshmallow joints, test it on a shake table and in a wind tunnel, then build the real one.',
       physical: ['Marshmallow-and-stick earthquake towers', 'Tinkercad shelter design'] },
     { id: 'power', n: 4, title: 'Power the Island', status: 'soon', day: 'Day 4',
       subjects: ['Physics', 'Maths', 'Technology', 'Economics'],
@@ -33,7 +33,8 @@
 
   function hub() {
     const s = OI.store.get(), log = s.log.exploration, e = s.exploration, wlog = s.log.water;
-    const done = { explore: e.completed, water: s.water.completed };
+    const done = { explore: e.completed, water: s.water.completed, build: s.build.completed };
+    const blog = s.log.build;
     const started = e.phase !== 'briefing' || e.hoursUsed > 0;
     const finds = log ? log.discovered.map(id => W.feature(id)).filter(f => f && !f.hidden) : [];
     return `
@@ -58,6 +59,7 @@
           <div><span class="label">Storm test</span><strong class="mono">${log.score}/18</strong></div>
           <div><span class="label">Discoveries</span><strong class="mono">${finds.length}</strong><small>${finds.slice(0, 6).map(f => f.icon).join(' ')}</small></div>
           ${wlog ? `<div><span class="label">Water system</span><strong class="mono">${wlog.score}/15</strong><small>Safe water on ${wlog.daysSafe} of 30 days</small></div>` : ''}
+          ${blog ? `<div><span class="label">Shelter</span><strong class="mono">${blog.score}/15</strong><small>Earthquake: ${blog.quake === 'stand' ? 'stood' : blog.quake === 'damage' ? 'damaged' : 'collapsed'} · storm: ${blog.storm === 'stand' ? 'stood' : blog.storm === 'damage' ? 'damaged' : 'collapsed'}</small></div>` : ''}
         </div>
         <p class="muted">The next missions will build on this base and on what your experts found.</p>`
         : `<p class="muted">Nothing recorded yet. When your team finishes Mission 1, its base site and discoveries are saved here and carried into the next missions.</p>`}
@@ -84,6 +86,7 @@
       <div class="actions">
         <button class="btn ghost" id="reset-m1">Reset Mission 1</button>
         <button class="btn ghost" id="reset-m2">Reset Mission 2</button>
+        <button class="btn ghost" id="reset-m3">Reset Mission 3</button>
         <button class="btn ghost danger" id="reset-all">Reset everything</button>
       </div>
       <p id="reset-confirm" class="confirm" hidden></p>
@@ -138,6 +141,24 @@
         <li>All sources share the tanks, so the dirtiest source decides the tank's water quality.</li>
         <li>Only drinking water (3 L per person per day) must be disinfected. Chlorine and solar bottles need clear water; boiling always works but uses 1 kg of firewood per 4 L.</li>
         <li>Same weather for everyone: showers on days 1–9, a dry spell on days 10–26 (2 mm in total), heavy rain on days 27–30.</li>
+      </ul>
+
+      <h2>Mission 3: Build to Survive (60–90 minutes)</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Stage</th><th>Time</th><th>What happens</th><th>Your role</th></tr></thead>
+        <tbody>
+          <tr><td>Briefing</td><td class="mono">5 min</td><td>The brief: a shelter frame 3 m tall with a 2 m roof, using up to 30 sticks. Teams see their ground type and storm wind from Mission 1. The Engineer leads.</td><td>Show a real marshmallow and stick: "joints can turn".</td></tr>
+          <tr><td>Design and predict</td><td class="mono">15–25 min</td><td>Teams build on a grid of joints, choose bamboo or hardwood, thatch or tiles, and roof straps, then predict.</td><td>Suggest starting from the box template to see squares fold.</td></tr>
+          <tr><td>Shake and wind tests</td><td class="mono">5–15 min</td><td>A 10-second earthquake and a 10-second storm. Sticks turn orange and red as they strain, then break. Teams improve and retest.</td><td>Use the "What" questions.</td></tr>
+          <tr><td>Debrief</td><td class="mono">20–30 min</td><td>Build the design with sticks and marshmallows, test it on a shake tray, and record the result. Tinkercad for the full shelter. Journal and 3-2-1.</td><td>Link to the marshmallow and Tinkercad stations.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Mission 3 rules</h3>
+      <ul>
+        <li>Each stick is a stiff spring and each joint turns freely, like a marshmallow. Squares can fold; triangles cannot change shape unless a stick breaks.</li>
+        <li>A stick breaks when stretched or squashed past its limit: bamboo 4.5%, hardwood 2.6%. Hardwood is stiffer but 2.5 times heavier.</li>
+        <li>Earthquakes move the ground side to side: magnitude 5 = 3.5 cm, 6 = 7 cm, 7 = 11 cm. Sand shakes 1.5×, rock 0.7×.</li>
+        <li>Wind pushes from the east with force proportional to speed², more strongly higher up. Untied thatch roofs lift off above 90 km/h, untied tiles above 140 km/h.</li>
       </ul>
 
       <h2>The science model</h2>
@@ -203,6 +224,7 @@
     document.querySelectorAll('.topnav a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + view || (view === '' && a.getAttribute('href') === '#') ? 'page' : 'false'));
     if (view === 'explore') { current = OI.missions.exploration; current.mount(main); }
     else if (view === 'water') { current = OI.missions.water; current.mount(main); }
+    else if (view === 'build') { current = OI.missions.build; current.mount(main); }
     else if (view === 'guide') { main.innerHTML = guide(); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
@@ -228,6 +250,7 @@
     };
     main.querySelector('#reset-m1').addEventListener('click', () => ask('Clear the Mission 1 map, journal and base?', () => OI.store.resetExploration()));
     main.querySelector('#reset-m2').addEventListener('click', () => ask('Clear the Mission 2 water design and journal?', () => OI.store.resetWater()));
+    main.querySelector('#reset-m3').addEventListener('click', () => ask('Clear the Mission 3 shelter design and journal?', () => OI.store.resetBuild()));
     main.querySelector('#reset-all').addEventListener('click', () => ask('Clear the team, all missions and the Island Log?', () => OI.store.resetAll()));
   }
 
