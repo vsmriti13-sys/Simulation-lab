@@ -6,7 +6,7 @@
 
   function freshExploration() {
     return {
-      phase: 'briefing', lead: 'geologist',
+      phase: 'briefing', lead: 'geologist', packed: null,
       scouted: {}, discovered: ['landing'], journal: [], hoursUsed: 0, radio: [],
       firstPin: null, firstReasons: [], base: null, prediction: null, attempts: [],
       debrief: {}, completed: false

@@ -202,6 +202,29 @@ window.OI = window.OI || {};
   FEATURES.push({ id: 'lake', r: 8, c: 9, icon: '🏞️', name: 'Lake water', cat: 'water', water: 'treat', roles: 'any', hidden: true,
     text: 'A freshwater lake.', expert: { hydrologist: 'Some algae. Filter and disinfect before drinking.' } });
 
+  // Setting sail: what the team packs. effect = what it changes on the island.
+  const KIT_LIMIT = 15; // kg the helicopter can carry for team equipment
+  const KIT = [
+    { id: 'tablets', name: 'Water purification tablets', kg: 1, need: 'Water', pillar: 'Environment' },
+    { id: 'testkit', name: 'Water test kit', kg: 1, need: 'Water', pillar: 'Environment', effect: 'The Hydrologist can test whether water is safe to drink.' },
+    { id: 'jerrycans', name: 'Two full 20-litre water cans', kg: 40, need: 'Water', pillar: 'Environment' },
+    { id: 'pot', name: 'Cooking pot (boils water)', kg: 2, need: 'Water', pillar: 'Environment' },
+    { id: 'rations', name: 'Food rations for 3 days', kg: 6, need: 'Food', pillar: 'Environment', effect: '+2 survey hours: less time spent looking for food.' },
+    { id: 'fishing', name: 'Fishing kit', kg: 1, need: 'Food', pillar: 'Environment' },
+    { id: 'seeds', name: 'Seeds for planting', kg: 1, need: 'Food', pillar: 'Economy' },
+    { id: 'tarp', name: 'Tarpaulin and rope', kg: 4, need: 'Shelter', pillar: 'Society' },
+    { id: 'tent', name: 'Tent', kg: 6, need: 'Shelter', pillar: 'Society' },
+    { id: 'firstaid', name: 'First-aid kit', kg: 2, need: 'Health', pillar: 'Society' },
+    { id: 'nets', name: 'Mosquito nets', kg: 1, need: 'Health', pillar: 'Society' },
+    { id: 'radio', name: 'Hand-held radio', kg: 2, need: 'Communication', pillar: 'Society', effect: 'You hear GHA radio messages, including storm warnings.' },
+    { id: 'torches', name: 'Head torches', kg: 1, need: 'Safety', pillar: 'Society', effect: '+2 survey hours: you can keep working after sunset.' },
+    { id: 'tools', name: 'Multi-tool and machete', kg: 2, need: 'Tools', pillar: 'Economy' },
+    { id: 'mapkit', name: 'Compass, notebook and pencils', kg: 1, need: 'Tools', pillar: 'Economy' },
+    { id: 'solar', name: 'Solar phone charger', kg: 2, need: 'Energy', pillar: 'Economy' },
+    { id: 'speaker', name: 'Music speaker', kg: 1, need: 'Comfort', pillar: 'Society' }
+  ];
+  const NEEDS = ['Water', 'Food', 'Shelter', 'Health', 'Safety', 'Communication', 'Tools', 'Energy'];
+
   // ---------- geometry helpers ----------
   const key = (r, c) => r + ',' + c;
   const inside = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
@@ -255,6 +278,7 @@ window.OI = window.OI || {};
   function canSee(f, role) { return f.roles === 'any' || f.roles.includes('any') || f.roles.includes(role); }
 
   OI.world = {
+    KIT, KIT_LIMIT, NEEDS,
     MAP, ROWS, COLS, TILE_M, LETTERS, LANDING, CRATER, RIVER, TERRAIN, ROLES, FEATURES,
     key, inside, code, terrain, isLand, isWaterBody, grid, dist, neighbours, hash,
     elev: (r, c) => ELEV[r][c],

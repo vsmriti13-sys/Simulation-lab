@@ -6,6 +6,7 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const PHASES = [
     { id: 'briefing', label: 'Briefing' },
+    { id: 'packing', label: 'Setting sail' },
     { id: 'aerial', label: 'Aerial survey' },
     { id: 'expedition', label: 'Ground expedition' },
     { id: 'base', label: 'Choose a base' },
@@ -13,6 +14,12 @@
     { id: 'debrief', label: 'Debrief' }
   ];
   const NEED_LABELS = { water: 'Water', food: 'Food', materials: 'Materials', access: 'Access', safety: 'Safety', environment: 'Environment' };
+  // The three pillars of sustainability from the course: which need belongs where.
+  const PILLARS = [
+    { name: 'Environment', needs: ['water', 'food', 'environment'] },
+    { name: 'Society', needs: ['safety', 'access'] },
+    { name: 'Economy', needs: ['materials'] }
+  ];
   const CAT_LABELS = { water: 'Water', food: 'Food', material: 'Materials', shelter: 'Shelter', danger: 'Dangers', clue: 'Evidence', wildlife: 'Wildlife', access: 'Access' };
   const REASONS = ['Close to fresh water', 'High ground', 'Near the landing beach', 'Flat land for building', 'Sheltered from wind', 'Near food', 'Beautiful view'];
 
@@ -22,11 +29,13 @@
   const save = () => OI.store.save();
 
   // ---------- time ----------
-  const totalHours = () => st().settings.hours;
+  const has = id => (ex().packed || []).includes(id);
+  const totalHours = () => st().settings.hours + (has('rations') ? 2 : 0) + (has('torches') ? 2 : 0);
   const hoursLeft = () => Math.max(0, totalHours() - ex().hoursUsed);
   function clock(h) { const day = Math.floor(h / 8) + 1; const hh = 8 + (h % 8); return `Day ${day} · ${String(hh).padStart(2, '0')}:00`; }
 
   function radioCheck() {
+    if (!has('radio')) return;
     const e = ex(), T = totalHours(), msgs = [
       { id: 'welcome', at: 0, from: 'GHA Base', text: `Welcome ashore, team. You have ${T} hours of daylight for the ground survey. Each survey takes one hour, so choose which expert to send where.` },
       { id: 'forming', at: Math.round(T * 0.4), from: 'GHA Weather Desk', text: 'Satellite images show a tropical storm forming 600 km to the east. It is moving west, toward the island.' },
@@ -61,6 +70,12 @@
     return e.journal[e.journal.length - 1];
   }
 
+  function expertNote(f, role) {
+    const n = f.expert && f.expert[role];
+    if (n && role === 'hydrologist' && f.cat === 'water' && !has('testkit')) return 'It looks clear, but without a water test kit we cannot tell whether it is safe to drink.';
+    return n;
+  }
+
   function report(r, c, role) {
     const t = W.terrain(r, c), e = ex();
     const lines = [], measures = [];
@@ -78,16 +93,16 @@
     const here = W.featuresAt(r, c);
     const seen = here.filter(f => W.canSee(f, role) && !f.hidden);
     const water = here.filter(f => f.cat === 'water' && W.canSee(f, role));
-    if (role === 'hydrologist') measures.push(['Drinking water here', water.length ? water.map(f => f.water === 'safe' ? 'Safe' : f.water === 'treat' ? 'Needs treatment' : 'Unsafe').join(', ') : 'None']);
+    if (role === 'hydrologist') measures.push(['Drinking water here', !water.length ? 'None' : !has('testkit') ? 'Untested: no test kit' : water.map(f => f.water === 'safe' ? 'Safe' : f.water === 'treat' ? 'Needs treatment' : 'Unsafe').join(', ')]);
     const unseen = here.filter(f => !W.canSee(f, role) && !e.discovered.includes(f.id));
     const hintRoles = [...new Set(unseen.flatMap(f => f.roles === 'any' ? [] : f.roles.filter(x => x !== 'any')))];
     return {
       title: `${t.name} · Grid ${W.grid(r, c)}`,
       general: t.general,
       expert: role !== 'any' ? t[role] : null,
-      waterNote: role === 'hydrologist' ? water.map(f => f.expert && f.expert.hydrologist).filter(Boolean) : [],
+      waterNote: role === 'hydrologist' ? water.map(f => expertNote(f, 'hydrologist')).filter(Boolean) : [],
       measures,
-      features: seen.map(f => ({ f, note: f.expert && f.expert[role] })),
+      features: seen.map(f => ({ f, note: expertNote(f, role) })),
       hint: hintRoles.length ? `A ${hintRoles.map(x => W.role(x).name).join(' or ')} might notice something more here.` : null
     };
   }
@@ -165,6 +180,7 @@
     stopStorm();
     const ph = ex().phase;
     if (ph === 'briefing') return renderBriefing();
+    if (ph === 'packing') return renderPacking();
     if (ph === 'aerial') return renderAerial();
     if (ph === 'expedition') return renderExpedition();
     if (ph === 'base') return renderBase();
@@ -203,15 +219,63 @@
       s.team.name = root.querySelector('#team-name').value.trim();
       W.ROLES.forEach(R => { s.team.members[R.id] = root.querySelector('#m-' + R.id).value.trim(); });
       if (ex().hoursUsed === 0) s.settings.hours = Number(root.querySelector('#hours').value);
-      go('aerial');
+      go('packing');
     });
+  }
+
+  // ----- setting sail: pack the helicopter -----
+  function packingPanel() {
+    const e = ex(), picked = e.packed || [];
+    const kg = picked.reduce((a, id) => a + W.KIT.find(k => k.id === id).kg, 0);
+    const over = kg > W.KIT_LIMIT;
+    const covered = new Set(picked.map(id => W.KIT.find(k => k.id === id).need));
+    const locked = e.hoursUsed > 0;
+    return `
+      <div class="pack-head">
+        <div><h2>Setting sail: what will you take?</h2>
+        <p>The helicopter can carry <strong>${W.KIT_LIMIT} kg</strong> of team equipment. Make a list of what you think is essential for survival, then pack it. Some choices will matter on the island.</p></div>
+        <div class="load ${over ? 'over' : ''}" role="meter" aria-valuemin="0" aria-valuemax="${W.KIT_LIMIT}" aria-valuenow="${kg}" aria-label="Weight packed">
+          <span class="mono big">${kg} / ${W.KIT_LIMIT} kg</span><div class="meter"><i style="width:${Math.min(100, (kg / W.KIT_LIMIT) * 100)}%"></i></div>
+          <span class="muted">${over ? `Too heavy by ${kg - W.KIT_LIMIT} kg. Take something out.` : `${W.KIT_LIMIT - kg} kg left`}</span>
+        </div>
+      </div>
+      ${locked ? '<p class="note">The expedition has started, so the kit can no longer change.</p>' : ''}
+      <ul class="kit">${W.KIT.map(k => `<li><label class="kit-item ${picked.includes(k.id) ? 'on' : ''}">
+        <input type="checkbox" data-kit="${k.id}" ${picked.includes(k.id) ? 'checked' : ''} ${locked ? 'disabled' : ''}>
+        <span class="kit-name">${esc(k.name)}</span><span class="mono kit-kg">${k.kg} kg</span>
+        <span class="kit-need">${k.need}</span></label></li>`).join('')}</ul>
+      <div class="needs-check"><h3>Basic needs covered</h3>
+        <ul>${W.NEEDS.map(n => `<li class="${covered.has(n) ? 'yes' : ''}">${covered.has(n) ? '✔' : '○'} ${n}</li>`).join('')}</ul>
+        <p class="muted">Talk about it: do all people have the same needs? Which needs can the island meet, and which must you bring?</p></div>
+      <div class="actions"><button class="btn ghost" id="back-brief">Back to briefing</button>
+        <button class="btn primary" id="sail" ${over || !picked.length ? 'disabled' : ''}>Load the helicopter</button></div>`;
+  }
+  function renderPacking() {
+    if (map) { map.destroy(); map = null; }
+    root.innerHTML = header() + `<div class="packing">${packingPanel()}</div>`;
+    bindPacking();
+  }
+  function bindPacking() {
+    const e = ex();
+    root.querySelectorAll('[data-kit]').forEach(cb => cb.addEventListener('change', () => {
+      const list = (e.packed || []).filter(id => id !== cb.dataset.kit);
+      if (cb.checked) list.push(cb.dataset.kit);
+      e.packed = W.KIT.map(k => k.id).filter(id => list.includes(id)); save();
+      const y = window.scrollY;
+      root.querySelector('.packing').innerHTML = packingPanel(); bindPacking();
+      window.scrollTo({ top: y });
+      const again = root.querySelector(`[data-kit="${cb.dataset.kit}"]`); if (again) again.focus();
+    }));
+    root.querySelector('#back-brief').addEventListener('click', () => go('briefing'));
+    root.querySelector('#sail').addEventListener('click', () => go('aerial'));
   }
 
   function renderAerial() {
     const e = ex();
     root.innerHTML = header() + workspace(`
-      <h2>Helicopter survey</h2>
-      <p>From the air you can see the shape of the land, but not what is on it. Look carefully, then talk as a team:</p>
+      <h2>Meeting time: the aerial shot</h2>
+      <p>We sent a helicopter to survey the island and take an aerial shot. From the air you can see the shape of the land, but not what is on it.</p>
+      <p><strong>Have a meeting: which seems to be the best place to settle, and why?</strong></p>
       <ul class="prompts">
         <li>Where do you think there is fresh water?</li>
         <li>Where is the high ground? Where is it low and flat?</li>
@@ -221,7 +285,7 @@
       <p>Tap the map where you would build the base, based on this view only. You will compare it with your final choice later.</p>
       <p class="pin-status" id="pin-status">${e.firstPin ? `Pin placed at <span class="mono">Grid ${W.grid(e.firstPin.r, e.firstPin.c)}</span>.` : 'No pin placed yet.'}</p>
       <fieldset class="checks"><legend>Why there?</legend>${REASONS.map((x, i) => `<label><input type="checkbox" id="why-${i}" ${e.firstReasons.includes(x) ? 'checked' : ''}> ${x}</label>`).join('')}</fieldset>
-      <div class="actions"><button class="btn ghost" id="back">Back to briefing</button><button class="btn primary" id="land" ${e.firstPin ? '' : 'disabled'}>Land and start the expedition</button></div>
+      <div class="actions"><button class="btn ghost" id="back">Back to packing</button><button class="btn primary" id="land" ${e.firstPin ? '' : 'disabled'}>Land and start the expedition</button></div>
     `);
     mountMap(t => {
       if (!canBuild(t.r, t.c)) { root.querySelector('#pin-status').textContent = 'Choose a land square (not sea, river or crater).'; return; }
@@ -232,7 +296,7 @@
     REASONS.forEach((x, i) => root.querySelector('#why-' + i).addEventListener('change', ev => {
       e.firstReasons = e.firstReasons.filter(y => y !== x); if (ev.target.checked) e.firstReasons.push(x); save();
     }));
-    root.querySelector('#back').addEventListener('click', () => go('briefing'));
+    root.querySelector('#back').addEventListener('click', () => go('packing'));
     root.querySelector('#land').addEventListener('click', () => { radioCheck(); save(); go('expedition'); });
   }
 
@@ -249,7 +313,7 @@
     return `
       <div class="clock"><div><span class="mono big">${clock(Math.min(e.hoursUsed, T))}</span><span class="muted">${left} survey hour${left === 1 ? '' : 's'} left</span></div>
         <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="${T}" aria-valuenow="${left}" aria-label="Survey hours left"><i style="width:${(left / T) * 100}%"></i></div></div>
-      ${latestRadio ? `<div class="radio" role="status"><span class="mono">RADIO · ${esc(latestRadio.from)}</span><p>${esc(latestRadio.text)}</p></div>` : ''}
+      ${latestRadio ? `<div class="radio" role="status"><span class="mono">RADIO · ${esc(latestRadio.from)}</span><p>${esc(latestRadio.text)}</p></div>` : !has('radio') ? '<p class="note">No radio packed: the team cannot hear from GHA Base.</p>' : ''}
       <fieldset class="lead"><legend>Who leads the next survey?</legend>
         ${W.ROLES.map(R => `<button type="button" class="lead-btn" data-role="${R.id}" aria-pressed="${e.lead === R.id}" style="--role:${R.color}"><span aria-hidden="true">${R.icon}</span> ${R.name}${memberName(R.id) ? `<small>${memberName(R.id)}</small>` : ''}</button>`).join('')}
       </fieldset>
@@ -407,7 +471,7 @@
 
   function scoreCard(sc) {
     return `<div class="score"><div class="score-total"><span class="mono big">${sc.total}<small>/18</small></span><span>Site score</span></div>
-      <ul class="needs">${Object.keys(NEED_LABELS).map(k => `<li><div class="need-row"><strong>${NEED_LABELS[k]}</strong>${pips(sc.scores[k])}</div><p>${esc(sc.notes[k])}</p></li>`).join('')}</ul></div>`;
+      ${PILLARS.map(P => `<div class="pillar"><p class="label">${P.name} pillar</p><ul class="needs">${P.needs.map(k => `<li><div class="need-row"><strong>${NEED_LABELS[k]}</strong>${pips(sc.scores[k])}</div><p>${esc(sc.notes[k])}</p></li>`).join('')}</ul></div>`).join('')}</div>`;
   }
 
   function showResults() {
@@ -454,11 +518,19 @@
   // ----- debrief -----
   const JOURNAL = [
     'What did you discover on the island? List three important things you saw, heard or found.',
-    'What resources does the island have that could help people survive?',
-    'What dangers did you notice? How might they affect future residents?',
-    'How did your team decide where to put the base? Which evidence mattered most?',
-    'How did your role as an expert help your team today?',
-    'What should be the next step in preparing the island for people to live on?'
+    'What resources does the island have that could help people survive? (Think: water, food, shelter materials, energy.)',
+    'What challenges or dangers did you notice on the island? How might these affect future people living here?',
+    'How did your team decide where to place key locations, such as the base, water source and safe zones?',
+    'What is one creative idea your team had while exploring or mapping the island?',
+    'If you could build one thing right now to make the island safer or better, what would it be and why?',
+    'How did your role as an expert (scientist, engineer, etc.) help your team today?',
+    'What did you learn from working with your team during the exploration?',
+    'What should be the next step in preparing the island for people to live on?',
+    'How did this mission make you think differently about real-world challenges?'
+  ];
+  const CHOICE = [
+    ['t1', '3 things you learnt', 3], ['t2', '2 things that surprised you or were new for you', 2],
+    ['t3', '1 emotion you felt during the activity', 1], ['t4', '1 question you still have', 1]
   ];
   function reportText() {
     const s = st(), e = ex(), b = e.base;
@@ -477,8 +549,12 @@
       last ? `Storm test: ${last.flooded ? 'flooded' : 'stayed dry'}, wind ${last.wind} km/h, site score ${last.total}/18` : '',
       e.attempts.length > 1 ? `Sites tested: ${e.attempts.map(a => `${W.grid(a.r, a.c)} (${a.total}/18)`).join(', ')}` : '',
       '',
+      e.packed ? `Packed (${e.packed.reduce((a, id) => a + W.KIT.find(k => k.id === id).kg, 0)} kg): ${e.packed.map(id => W.KIT.find(k => k.id === id).name).join(', ')}` : '',
+      '',
       'JOURNAL',
-      ...JOURNAL.map((q, i) => `${i + 1}. ${q}\n${(e.debrief['q' + i] || '').trim() || '—'}\n`)
+      ...JOURNAL.map((q, i) => `${i + 1}. ${q}\n${(e.debrief['q' + i] || '').trim() || '—'}\n`),
+      'CHOICE BOARD: 3-2-1 REFLECTION',
+      ...CHOICE.map(([id, label]) => `${label}:\n${(e.debrief[id] || '').trim() || '—'}\n`)
     ];
     return lines.filter((l, i, arr) => l !== '' || arr[i - 1] !== '').join('\n');
   }
@@ -494,8 +570,12 @@
       </div>
       <p>How did the evidence from the ground change your first idea from the helicopter?</p>
       ${e.attempts.length ? attemptsTable() : ''}
+      ${e.packed ? `<h3>What you packed</h3><ul class="near">${W.KIT.filter(k => k.effect).map(k => `<li>${has(k.id) ? '✔' : '✘'} <strong>${esc(k.name)}</strong>: ${has(k.id) ? esc(k.effect) : 'not packed.'}</li>`).join('')}</ul>` : ''}
       <form id="journal" class="journal-form"><h3>Journal entries</h3>
+        <p class="muted">Your teacher may choose which questions to answer.</p>
         ${JOURNAL.map((q, i) => `<label class="field"><span>${i + 1}. ${q}</span><textarea id="q${i}" rows="3">${esc(e.debrief['q' + i] || '')}</textarea></label>`).join('')}
+        <h3>Choice board: 3-2-1 reflection</h3>
+        ${CHOICE.map(([id, label, n]) => `<label class="field"><span>${label}</span><textarea id="${id}" rows="${n + 1}">${esc(e.debrief[id] || '')}</textarea></label>`).join('')}
       </form>
       <div class="actions">
         <button class="btn ghost" id="copy">Copy mission report</button>
@@ -506,6 +586,7 @@
     `);
     mountMap(() => {});
     JOURNAL.forEach((q, i) => root.querySelector('#q' + i).addEventListener('input', ev => { e.debrief['q' + i] = ev.target.value; save(); }));
+    CHOICE.forEach(([id]) => root.querySelector('#' + id).addEventListener('input', ev => { e.debrief[id] = ev.target.value; save(); }));
     root.querySelector('#copy').addEventListener('click', () => {
       const txt = reportText(), status = root.querySelector('#copy-status'), ta = root.querySelector('#report-text');
       const fallback = () => { ta.hidden = false; ta.value = txt; ta.focus(); ta.select(); status.textContent = 'Select all of the text below and copy it.'; };

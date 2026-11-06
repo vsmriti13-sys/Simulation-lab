@@ -117,17 +117,17 @@
       if (s > water) { water = s; bestWater = { f, d }; }
     }
     notes.water = bestWater
-      ? `${bestWater.f.name} ${W.metres(bestWater.d)} m away${bestWater.f.water === 'treat' ? ' (needs filtering and disinfecting)' : ' (safe to drink)'}.`
+      ? `${bestWater.f.name} ${bestWater.d === 0 ? 'right on site' : W.metres(bestWater.d) + ' m away'}${bestWater.f.water === 'treat' ? ' (needs filtering and disinfecting)' : ' (safe to drink)'}.`
       : 'No drinkable water within 1.5 km.';
     // Food
     const food = withinFeatures(r, c, 3).filter(x => x.f.food);
     const foodScore = Math.min(3, food.length);
-    notes.food = food.length ? `${food.length} food source${food.length > 1 ? 's' : ''} within 750 m: ${food.map(x => x.f.name.toLowerCase()).join(', ')}.` : 'No food sources within 750 m.';
+    notes.food = food.length ? `${food.length} food source${food.length > 1 ? 's' : ''} within 750 m: ${[...new Set(food.map(x => x.f.name.toLowerCase()))].join(', ')}.` : 'No food sources within 750 m.';
     // Materials
     const mats = withinFeatures(r, c, 3).filter(x => x.f.material);
     const forestNear = W.neighbours(r, c).concat([{ r, c }]).some(n => W.code(n.r, n.c) === 'f');
     const matScore = Math.min(3, mats.length + (forestNear ? 1 : 0));
-    notes.materials = [mats.length ? mats.map(x => x.f.name.toLowerCase()).join(', ') + ' within 750 m' : '', forestNear ? 'timber from the forest next door' : '']
+    notes.materials = [mats.length ? [...new Set(mats.map(x => x.f.name.toLowerCase()))].join(', ') + ' within 750 m' : '', forestNear ? 'timber from the forest next door' : '']
       .filter(Boolean).join('; ') || 'No building materials close by.';
     notes.materials = notes.materials.charAt(0).toUpperCase() + notes.materials.slice(1) + '.';
     // Access to the landing place

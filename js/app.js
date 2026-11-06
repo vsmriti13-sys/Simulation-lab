@@ -7,8 +7,8 @@
   const MISSIONS = [
     { id: 'explore', n: 1, title: 'Explore the Island', status: 'open', day: 'Day 1',
       subjects: ['Geography', 'Science', 'Maths', 'Language'],
-      blurb: 'Survey the island with five experts, collect evidence, choose a base site and test it against a tropical storm.',
-      physical: ['Paper map of the island', 'Observation walk (GooseChase)', 'Journal entries'] },
+      blurb: 'Pack the helicopter, survey the island with five experts, collect evidence, choose a base site and test it against a tropical storm.',
+      physical: ['Packing list and basic needs', 'Paper map of the island', 'Observation walk (GooseChase)', 'Journal entries and 3-2-1'] },
     { id: 'water', n: 2, title: 'The Water Crisis', status: 'soon', day: 'Day 2',
       subjects: ['Chemistry', 'Biology', 'Maths', 'Sustainability'],
       blurb: 'Collect rainwater, filter and disinfect it, and plan storage for your base. What happens in a drought, or when more people arrive?',
@@ -103,12 +103,13 @@
         <li><strong>Connect.</strong> Build or do the real thing, then compare it with the simulation.</li>
       </ol>
 
-      <h2>Mission 1: Explore the Island (60–75 minutes)</h2>
+      <h2>Mission 1: Explore the Island (70–90 minutes)</h2>
       <div class="table-wrap"><table>
         <thead><tr><th>Stage</th><th>Time</th><th>What happens</th><th>Your role</th></tr></thead>
         <tbody>
           <tr><td>Briefing</td><td class="mono">10 min</td><td>Read the GHA letter. Teams of five pick their expert roles.</td><td>Stay in role: you are the GHA mission coordinator.</td></tr>
-          <tr><td>Aerial survey</td><td class="mono">5 min</td><td>Teams study the island from the helicopter and pin a first-impression base site.</td><td>Ask: "What do you notice? What do you think is down there?"</td></tr>
+          <tr><td>Setting sail</td><td class="mono">10 min</td><td>"What are you going to take with you?" Teams pack 15 kg of equipment and check which basic needs it covers. Four items change the mission: the radio (storm warnings), the water test kit (the Hydrologist can test water), food rations and head torches (+2 survey hours each).</td><td>Link to Basic Human Needs and the three pillars of sustainability.</td></tr>
+          <tr><td>Meeting time: aerial shot</td><td class="mono">5 min</td><td>Teams study the helicopter's aerial view, discuss the best place to settle and why, and pin a first-impression base site.</td><td>Ask: "What do you notice? What do you think is down there?"</td></tr>
           <tr><td>Ground expedition</td><td class="mono">20–30 min</td><td>Each survey costs one hour. Teams choose which expert to send to which square. Experts notice different things.</td><td>Read out radio messages. Ask each expert to report to the team.</td></tr>
           <tr><td>Choose a base</td><td class="mono">5–10 min</td><td>Teams review their evidence, choose a site and predict flooding and wind.</td><td>Insist on a reason based on evidence.</td></tr>
           <tr><td>Storm test</td><td class="mono">5–10 min</td><td>A 24-hour tropical storm hits the island. Teams see the result and the maths behind it, and may test another site.</td><td>Use the "What" questions below.</td></tr>
@@ -124,7 +125,7 @@
         <li><strong>River flood:</strong> 260 mm of rain in 24 hours raises the river by 2.8 m. Land beside the river that is less than 2.8 m above it floods. A square can be high above the sea and still flood from the river.</li>
         <li><strong>Wind:</strong> 130 km/h from the east × exposure. Beaches 100%, hills 115%, grassland 85%, forest 55%. Higher hills to the east cut it by 30%. Shelters are damaged above 85 km/h and destroyed above 110 km/h.</li>
         <li><strong>Landslide:</strong> heavy rain brings down the slope at the landslide scar onto the squares just below it.</li>
-        <li><strong>Site score:</strong> 0–3 for each of water, food, materials, access, safety and environment (18 in total). The environment score is the sustainability check: mangroves, forest, turtles and seabirds count.</li>
+        <li><strong>Site score:</strong> 0–3 for each of water, food, materials, access, safety and environment (18 in total), grouped under the three pillars of sustainability: Environment (water, food, environment), Society (safety, access) and Economy (materials). Mangroves, forest, turtles and seabirds count.</li>
       </ul>
       <p>There is no single right answer. The forest near the hidden spring scores well but means clearing trees. The hills are dry but windy. The valley has water and rich soil but floods. Good teams argue for their trade-off.</p>
 
@@ -135,11 +136,28 @@
         <li>What do you notice about ___?</li><li>What do you think will happen if we ___?</li>
       </ul>
 
+      <h2>STEAM Principles Checklist: Mission 1</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Principle</th><th>Where it shows up</th></tr></thead>
+        <tbody>
+          <tr><td>Integration of disciplines</td><td>Geography (maps, grid references), science (floods, wind, volcanoes, ecosystems), maths (heights, distances, subtraction, percentages), language (reports and journals).</td></tr>
+          <tr><td>Inquiry-based learning</td><td>Teams decide where to look and which expert to send, and they predict before they test.</td></tr>
+          <tr><td>Project-based learning</td><td>A real problem: where should displaced people live safely and sustainably?</td></tr>
+          <tr><td>Creativity and innovation</td><td>Arguing for a trade-off; journal question 5 asks for a creative idea; the paper map adds art.</td></tr>
+          <tr><td>Collaboration and communication</td><td>Five expert roles, each holding different evidence that the team needs.</td></tr>
+          <tr><td>Real-world connections</td><td>Storm surge, river flooding, mangroves and climate displacement are real issues in Pacific islands.</td></tr>
+          <tr><td>Use of technology</td><td>The simulation lets learners test decisions that are impossible to test physically.</td></tr>
+          <tr><td>Interdisciplinary approach</td><td>One decision draws on every expert's evidence at once.</td></tr>
+          <tr><td>Student-centred learning</td><td>Learners make every decision. The teacher coordinates in role.</td></tr>
+        </tbody>
+      </table></div>
+
       <h2>The week</h2>
       <div class="table-wrap"><table>
         <thead><tr><th>Day</th><th>Simulation mission</th><th>Hands-on activities from the course</th></tr></thead>
         <tbody>${MISSIONS.map(m => `<tr><td>${m.day}</td><td>M${m.n} · ${m.title}${m.status === 'open' ? '' : ' <span class="muted">(in design)</span>'}</td><td>${m.physical.join('; ')}</td></tr>`).join('')}
-          <tr><td>Day 5</td><td>Reflection</td><td>Choice board (3-2-1), STEAM principles checklist, "Which part was engaging for you?"</td></tr>
+          <tr><td>Daily</td><td>Debrief in each mission</td><td>Journal entries and the choice board 3-2-1 reflection</td></tr>
+          <tr><td>Day 5</td><td>Reflection</td><td>STEAM principles checklist, "Which part was engaging for you?"</td></tr>
         </tbody>
       </table></div>
 
