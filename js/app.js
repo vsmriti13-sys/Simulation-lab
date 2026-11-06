@@ -9,9 +9,9 @@
       subjects: ['Geography', 'Science', 'Maths', 'Language'],
       blurb: 'Pack the helicopter, survey the island with five experts, collect evidence, choose a base site and test it against a tropical storm.',
       physical: ['Packing list and basic needs', 'Paper map of the island', 'Observation walk (GooseChase)', 'Journal entries and 3-2-1'] },
-    { id: 'water', n: 2, title: 'The Water Crisis', status: 'soon', day: 'Day 2',
+    { id: 'water', n: 2, title: 'The Water Crisis', status: 'open', day: 'Day 2',
       subjects: ['Chemistry', 'Biology', 'Maths', 'Sustainability'],
-      blurb: 'Collect rainwater, filter and disinfect it, and plan storage for your base. What happens in a drought, or when more people arrive?',
+      blurb: 'Thirty settlers arrive. Budget, collect, store and disinfect water for 30 days, through a dry spell, using the sources your team found.',
       physical: ['AquaQuest water filtration'] },
     { id: 'build', n: 3, title: 'Build to Survive', status: 'soon', day: 'Day 3',
       subjects: ['Physics', 'Engineering', 'Maths', 'Art'],
@@ -32,7 +32,8 @@
   ];
 
   function hub() {
-    const s = OI.store.get(), log = s.log.exploration, e = s.exploration;
+    const s = OI.store.get(), log = s.log.exploration, e = s.exploration, wlog = s.log.water;
+    const done = { explore: e.completed, water: s.water.completed };
     const started = e.phase !== 'briefing' || e.hoursUsed > 0;
     const finds = log ? log.discovered.map(id => W.feature(id)).filter(f => f && !f.hidden) : [];
     return `
@@ -56,6 +57,7 @@
           <div><span class="label">Base site</span><strong class="mono">Grid ${log.base.grid}</strong><small>${esc(log.base.terrain)}</small></div>
           <div><span class="label">Storm test</span><strong class="mono">${log.score}/18</strong></div>
           <div><span class="label">Discoveries</span><strong class="mono">${finds.length}</strong><small>${finds.slice(0, 6).map(f => f.icon).join(' ')}</small></div>
+          ${wlog ? `<div><span class="label">Water system</span><strong class="mono">${wlog.score}/15</strong><small>Safe water on ${wlog.daysSafe} of 30 days</small></div>` : ''}
         </div>
         <p class="muted">The next missions will build on this base and on what your experts found.</p>`
         : `<p class="muted">Nothing recorded yet. When your team finishes Mission 1, its base site and discoveries are saved here and carried into the next missions.</p>`}
@@ -66,7 +68,7 @@
       <ol class="missions">
         ${MISSIONS.map(m => `<li class="mission-card ${m.status}">
           <div class="mc-top"><span class="mc-n mono">M${m.n}</span><span class="mc-day">${m.day}</span>
-            <span class="status ${m.status}">${m.status === 'open' ? (e.completed && m.id === 'explore' ? 'Complete' : 'Ready') : 'In design'}</span></div>
+            <span class="status ${m.status}">${m.status === 'open' ? (done[m.id] ? 'Complete' : 'Ready') : 'In design'}</span></div>
           <h3>${m.title}</h3>
           <p>${m.blurb}</p>
           <p class="subjects">${m.subjects.join(' · ')}</p>
@@ -81,6 +83,7 @@
       <p class="muted">Progress is saved in this browser only. Before a new group starts, clear it here.</p>
       <div class="actions">
         <button class="btn ghost" id="reset-m1">Reset Mission 1</button>
+        <button class="btn ghost" id="reset-m2">Reset Mission 2</button>
         <button class="btn ghost danger" id="reset-all">Reset everything</button>
       </div>
       <p id="reset-confirm" class="confirm" hidden></p>
@@ -116,6 +119,26 @@
           <tr><td>Debrief</td><td class="mono">10–15 min</td><td>Compare first impressions with the final choice. Write journal entries. Save to the Island Log.</td><td>Link to the paper map and GooseChase observation walk.</td></tr>
         </tbody>
       </table></div>
+
+      <h2>Mission 2: The Water Crisis (60–90 minutes)</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Stage</th><th>Time</th><th>What happens</th><th>Your role</th></tr></thead>
+        <tbody>
+          <tr><td>Briefing</td><td class="mono">5 min</td><td>Thirty settlers are coming. Teams see their base and the water sources they found in Mission 1. The Hydrologist leads.</td><td>Add the extra challenge (15 more settlers on day 20) for confident groups.</td></tr>
+          <tr><td>Water budget</td><td class="mono">10–15 min</td><td>Choose litres per person (7.5, 15 or 25) and calculate daily, monthly, drinking and rainwater amounts.</td><td>Maths focus: multiplication, percentages, units.</td></tr>
+          <tr><td>Design and predict</td><td class="mono">15–20 min</td><td>Choose sources, storage and treatment within 120 credits, then predict.</td><td>Ask: "Which part of your design is the weakest?"</td></tr>
+          <tr><td>30-day test</td><td class="mono">5–10 min</td><td>Day-by-day chart of rain and stored water through a 17-day dry spell. Teams can redesign and test again.</td><td>Use the "What" questions.</td></tr>
+          <tr><td>Debrief</td><td class="mono">15–20 min</td><td>Record the real AquaQuest filter results and compare them with the simulation. Journal and 3-2-1.</td><td>Link to the AquaQuest station.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Mission 2 rules</h3>
+      <ul>
+        <li>1 mm of rain on 1 m² of roof = 1 litre; 80% reaches the tank. Without a first-flush diverter, roof dirt contaminates the tank.</li>
+        <li>The spring gives 900 L/day after rain, falling toward 300 L/day in dry weather. A river pump gives up to 800 L/day of cloudy water. A solar still makes 4 L per m² on sunny days.</li>
+        <li>All sources share the tanks, so the dirtiest source decides the tank's water quality.</li>
+        <li>Only drinking water (3 L per person per day) must be disinfected. Chlorine and solar bottles need clear water; boiling always works but uses 1 kg of firewood per 4 L.</li>
+        <li>Same weather for everyone: showers on days 1–9, a dry spell on days 10–26 (2 mm in total), heavy rain on days 27–30.</li>
+      </ul>
 
       <h2>The science model</h2>
       <p>The rules are deliberately simple and visible, so learners can reason with them and check the maths:</p>
@@ -179,6 +202,7 @@
     current = null;
     document.querySelectorAll('.topnav a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + view || (view === '' && a.getAttribute('href') === '#') ? 'page' : 'false'));
     if (view === 'explore') { current = OI.missions.exploration; current.mount(main); }
+    else if (view === 'water') { current = OI.missions.water; current.mount(main); }
     else if (view === 'guide') { main.innerHTML = guide(); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
@@ -203,6 +227,7 @@
       confirmBox.querySelector('#no').addEventListener('click', () => { confirmBox.hidden = true; });
     };
     main.querySelector('#reset-m1').addEventListener('click', () => ask('Clear the Mission 1 map, journal and base?', () => OI.store.resetExploration()));
+    main.querySelector('#reset-m2').addEventListener('click', () => ask('Clear the Mission 2 water design and journal?', () => OI.store.resetWater()));
     main.querySelector('#reset-all').addEventListener('click', () => ask('Clear the team, all missions and the Island Log?', () => OI.store.resetAll()));
   }
 

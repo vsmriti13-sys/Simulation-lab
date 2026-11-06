@@ -159,19 +159,12 @@
     };
   }
 
-  function workspace(panel) {
-    return `<div class="workspace">
-      <div class="map-col">
-        <div class="map-frame"><canvas id="map" tabindex="0" aria-label="Map of the island. Use the arrow keys to move and Enter to choose a square."></canvas></div>
-        <p class="readout" id="readout" aria-live="polite"></p>
-      </div>
-      <aside class="panel" id="panel">${panel}</aside>
-    </div>`;
-  }
+  const workspace = panel => OI.ui.workspace(panel);
 
   function mountMap(onPick) {
     if (map) map.destroy();
     map = OI.createMap(root.querySelector('#map'), { getView: mapView, onPick, onHover: readout });
+    OI.ui.bindWorkspace(root);
     readout(null);
   }
 
