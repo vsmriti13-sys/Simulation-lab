@@ -245,10 +245,29 @@
       const r = Math.floor((e.clientY - rect.top) / (rect.height / W.ROWS));
       return W.inside(r, c) ? { r, c } : null;
     }
-    canvas.addEventListener('mousemove', e => { const t = tileFromEvent(e); if (!t || !hover || t.r !== hover.r || t.c !== hover.c) { hover = t; draw(); opts.onHover && opts.onHover(t); } });
-    canvas.addEventListener('mouseleave', () => { hover = null; draw(); opts.onHover && opts.onHover(null); });
-    canvas.addEventListener('click', e => { const t = tileFromEvent(e); if (t) { cursor = t; opts.onPick && opts.onPick(t); } });
-    canvas.addEventListener('focus', () => { showCursor = true; draw(); opts.onHover && opts.onHover(cursor); });
+    // Pointer events work the same for mouse, finger and pen. A tap is a press and release
+    // that stays within a few pixels; a swipe is left alone so the page can still scroll.
+    const pick = t => { if (t) { cursor = t; opts.onPick && opts.onPick(t); } };
+    if (window.PointerEvent) {
+      let down = null;
+      canvas.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
+      canvas.addEventListener('pointercancel', () => { down = null; });
+      canvas.addEventListener('pointerup', e => {
+        if (!down || down.id !== e.pointerId) return;
+        const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+        down = null;
+        if (moved < 12) pick(tileFromEvent(e));
+      });
+      canvas.addEventListener('pointermove', e => {
+        if (e.pointerType !== 'mouse') return; // no hover on touch screens
+        const t = tileFromEvent(e);
+        if (!t || !hover || t.r !== hover.r || t.c !== hover.c) { hover = t; draw(); opts.onHover && opts.onHover(t); }
+      });
+      canvas.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { hover = null; draw(); opts.onHover && opts.onHover(null); } });
+    } else {
+      canvas.addEventListener('click', e => pick(tileFromEvent(e)));
+    }
+    canvas.addEventListener('focus', () => { let kb = true; try { kb = canvas.matches(':focus-visible'); } catch (err) { /* older browsers */ } if (!kb) return; showCursor = true; draw(); opts.onHover && opts.onHover(cursor); });
     canvas.addEventListener('blur', () => { showCursor = false; draw(); });
     canvas.addEventListener('keydown', e => {
       const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };

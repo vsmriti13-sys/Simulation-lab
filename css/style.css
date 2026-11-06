@@ -276,3 +276,4 @@ tr.best td { font-weight: 700; background: var(--chip); }
 .needs-check li.yes { background: var(--good); color: #fff; }
 .pillar { display: grid; gap: 6px; padding-top: 8px; border-top: 1px dashed var(--line); }
 @media (max-width: 700px) { .pack-head { grid-template-columns: minmax(0, 1fr); } }
+#map { touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; cursor: pointer; }
