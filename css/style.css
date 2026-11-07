@@ -415,3 +415,21 @@ tr.best td { font-weight: 700; background: var(--chip); }
 .k-ring { width: 12px !important; height: 12px !important; border-radius: 50% !important; border: 2px solid var(--ink); background: transparent; }
 @media (max-width: 960px) { .minis.three { grid-template-columns: minmax(0, 1fr); } }
 .alert-strip span.set { color: #fff; border-color: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+
+/* teacher mode */
+.teacher { display: grid; gap: 20px; }
+.teacher .mission-head .lede { max-width: 70ch; }
+.teacher-form { display: grid; gap: 14px; padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.teacher-form fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.teacher-form legend { font-weight: 700; padding: 0; margin-bottom: 8px; }
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.plan { display: grid; gap: 14px; }
+.ideas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ideas.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.idea { display: grid; gap: 8px; align-content: start; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.plan > .idea { border: 2px solid var(--ink); max-width: 760px; }
+.idea .btn { justify-self: start; }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-width: 760px; }
+.timeline li { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 8px 12px; border-left: 4px solid var(--signal); background: var(--panel); border-radius: 4px; }
+@media (max-width: 960px) { .ideas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .ideas, .ideas.two, .row2 { grid-template-columns: minmax(0, 1fr); } }

@@ -21,6 +21,10 @@ The simulations add what slides can't: changing variables, making decisions and 
 | 5 | **Protect the Ecosystem** | ✅ Playable | Observation activity (GooseChase) |
 | 6 | **The Volcano Wakes** | ✅ Playable | Orange volcano, volcano-safe building, AR |
 
+### Teacher Mode
+
+For any teacher, not only STEM: choose a subject (science, maths, geography, English and languages, history, art and design, music, citizenship, economics, computing), an age group (7–10, 11–14, 15+), the time available (one lesson, half a day, a week) and an optional learning goal. Teacher Mode suggests the best-fitting missions, each with a subject task, the product pupils make, a timed lesson structure and age adaptations, and the plan can be copied into a planning document.
+
 ### Mission 1: Explore the Island
 
 1. **Briefing.** The GHA letter. Teams of five choose expert roles: Geologist, Hydrologist, Biologist, Engineer, Meteorologist.
@@ -49,6 +53,7 @@ js/ui.js                shared interface pieces
 js/store.js             saved progress and the Island Log
 js/map-view.js          the map (canvas)
 js/missions/*.js        one file per mission
+js/teacher.js           Teacher Mode: subject ideas for every mission
 js/app.js               Mission Control hub, facilitator guide, routing
 ```
 

@@ -48,6 +48,7 @@
         <p class="lede">A new island has been found in the Pacific Ocean. Your team of experts goes first: explore it, test it and design a sustainable future for the people who will live there.</p>
         <div class="hero-actions">
           <a class="btn primary" href="#explore">${e.completed ? 'Revisit Mission 1' : started ? 'Continue Mission 1' : 'Start Mission 1'}</a>
+          <a class="btn ghost" href="#teacher">Teacher Mode</a>
           <a class="btn ghost" href="#guide">Facilitator guide</a>
         </div>
       </div>
@@ -297,6 +298,7 @@
     else if (view === 'eco') { current = OI.missions.eco; current.mount(main); }
     else if (view === 'volcano') { current = OI.missions.volcano; current.mount(main); }
     else if (view === 'guide') { main.innerHTML = guide(); }
+    else if (view === 'teacher') { OI.teacher.render(main); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
     document.getElementById('team-chip').textContent = team ? 'Team: ' + team : '';
