@@ -25,15 +25,16 @@
       subjects: ['Biology', 'Geography', 'Environmental science'],
       blurb: 'The settlement grows to 150 people. Paint a 10-year land-use plan, set fishing and waste rules, and watch what happens to the reef, forest, turtles and seabirds.',
       physical: ['Observation activity: animals, plants, birds, weather'] },
-    { id: 'volcano', n: 6, title: 'The Volcano Wakes', status: 'soon', day: 'Day 5',
+    { id: 'volcano', n: 6, title: 'The Volcano Wakes', status: 'open', day: 'Day 5',
       subjects: ['Earth science', 'Engineering', 'Geography'],
-      blurb: 'The steam vents your Geologist found grow stronger. Map lava and ash hazard zones and protect the community.',
+      blurb: 'The steam vents your Geologist found grow stronger. Read 10 days of monitoring data, decide when to evacuate, map the danger zones and protect the community.',
       physical: ['Orange volcano (baking soda and vinegar)', 'Volcano-safe building challenge', 'Augmented reality'] }
   ];
 
   function hub() {
     const s = OI.store.get(), log = s.log.exploration, e = s.exploration, wlog = s.log.water;
-    const done = { explore: e.completed, water: s.water.completed, build: s.build.completed, power: s.power.completed, eco: s.eco.completed };
+    const done = { explore: e.completed, water: s.water.completed, build: s.build.completed, power: s.power.completed, eco: s.eco.completed, volcano: s.volcano.completed };
+    const vlog = s.log.volcano, doneCount = Object.values(done).filter(Boolean).length;
     const elog = s.log.eco;
     const plog = s.log.power;
     const blog = s.log.build;
@@ -61,11 +62,12 @@
           <div><span class="label">Storm test</span><strong class="mono">${log.score}/18</strong></div>
           <div><span class="label">Discoveries</span><strong class="mono">${finds.length}</strong><small>${finds.slice(0, 6).map(f => f.icon).join(' ')}</small></div>
           ${wlog ? `<div><span class="label">Water system</span><strong class="mono">${wlog.score}/15</strong><small>Safe water on ${wlog.daysSafe} of 30 days</small></div>` : ''}
+          ${vlog ? `<div><span class="label">Volcano</span><strong class="mono">${vlog.score}/15</strong><small>${vlog.evacDay ? 'Evacuated on day ' + vlog.evacDay : 'No evacuation'} · map ${vlog.accuracy}% match</small></div>` : ''}
           ${elog ? `<div><span class="label">Ecosystem</span><strong class="mono">${elog.score}/15</strong><small>Year 10: ${elog.fish} t fish, ${elog.cover}% forest, ${elog.turtles} turtle nests</small></div>` : ''}
           ${plog ? `<div><span class="label">Power</span><strong class="mono">${plog.score}/15</strong><small>Lights on ${plog.lit} of ${plog.litOf} evening hours${plog.fuel ? ` · ${plog.fuel} L diesel` : ''}</small></div>` : ''}
           ${blog ? `<div><span class="label">Shelter</span><strong class="mono">${blog.score}/15</strong><small>Earthquake: ${blog.quake === 'stand' ? 'stood' : blog.quake === 'damage' ? 'damaged' : 'collapsed'} · storm: ${blog.storm === 'stand' ? 'stood' : blog.storm === 'damage' ? 'damaged' : 'collapsed'}</small></div>` : ''}
         </div>
-        <p class="muted">The next missions will build on this base and on what your experts found.</p>`
+        <p class="muted">${doneCount === 6 ? 'All six missions complete. Operation Island 2040 is a success!' : `${doneCount} of 6 missions complete. Each mission builds on this base and on what your experts found.`}</p>`
         : `<p class="muted">Nothing recorded yet. When your team finishes Mission 1, its base site and discoveries are saved here and carried into the next missions.</p>`}
     </section>
 
@@ -93,6 +95,7 @@
         <button class="btn ghost" id="reset-m3">Reset Mission 3</button>
         <button class="btn ghost" id="reset-m4">Reset Mission 4</button>
         <button class="btn ghost" id="reset-m5">Reset Mission 5</button>
+        <button class="btn ghost" id="reset-m6">Reset Mission 6</button>
         <button class="btn ghost danger" id="reset-all">Reset everything</button>
       </div>
       <p id="reset-confirm" class="confirm" hidden></p>
@@ -207,6 +210,25 @@
         <li>Turtles lose nests when the village or farms come close to their beach (halved with turtle-friendly lights); seabirds when the village or logging come close to their cliffs.</li>
       </ul>
 
+      <h2>Mission 6: The Volcano Wakes (60–90 minutes)</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Stage</th><th>Time</th><th>What happens</th><th>Your role</th></tr></thead>
+        <tbody>
+          <tr><td>Briefing</td><td class="mono">5 min</td><td>The steam vents found in Mission 1 are getting stronger. The Geologist leads.</td><td>Play the GHA Volcano Desk.</td></tr>
+          <tr><td>Monitoring</td><td class="mono">15 min</td><td>Ten days of earthquakes, ground swelling and sulphur gas, with a daily Geologist's report. Teams set the alert level each day; red means evacuate.</td><td>Discuss the cost of a false alarm versus a late warning.</td></tr>
+          <tr><td>Hazard map and plan</td><td class="mono">15–20 min</td><td>Paint danger zones, choose an assembly point, buy protection (steep roofs, tank covers, masks, stored seeds) and predict.</td><td>Hint: downhill and downwind.</td></tr>
+          <tr><td>Eruption</td><td class="mono">5–10 min</td><td>Burning gas flows, lava down the valley, ash blown west, mudflows after rain. Painted zones are compared with what happened.</td><td>Use the "What" questions.</td></tr>
+          <tr><td>Debrief</td><td class="mono">20–30 min</td><td>Orange volcano (baking soda and vinegar), the volcano-safe marshmallow building, augmented reality. Journal and 3-2-1.</td><td>Link to the volcano stations.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Mission 6 rules</h3>
+      <ul>
+        <li>The eruption begins at 03:00 on day 11. Evacuating 1–3 days before is ideal; earlier costs time away from farms and school.</li>
+        <li>Burning gas flows reach 500 m from the crater. Lava's front always moves into the lowest neighbouring square, so it follows the river valley to the sea.</li>
+        <li>Ash falls downwind (west): up to 40 cm near the crater, thinning with distance. 10 cm collapses flat roofs (steep roofs survive up to 25 cm); 5 cm buries crops; any ash spoils uncovered water.</li>
+        <li>Mudflows follow the river and the low land beside it, the same land that floods in Mission 1.</li>
+      </ul>
+
       <h2>The science model</h2>
       <p>The rules are deliberately simple and visible, so learners can reason with them and check the maths:</p>
       <ul>
@@ -273,6 +295,7 @@
     else if (view === 'build') { current = OI.missions.build; current.mount(main); }
     else if (view === 'power') { current = OI.missions.power; current.mount(main); }
     else if (view === 'eco') { current = OI.missions.eco; current.mount(main); }
+    else if (view === 'volcano') { current = OI.missions.volcano; current.mount(main); }
     else if (view === 'guide') { main.innerHTML = guide(); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
@@ -301,6 +324,7 @@
     main.querySelector('#reset-m3').addEventListener('click', () => ask('Clear the Mission 3 shelter design and journal?', () => OI.store.resetBuild()));
     main.querySelector('#reset-m4').addEventListener('click', () => ask('Clear the Mission 4 power design and journal?', () => OI.store.resetPower()));
     main.querySelector('#reset-m5').addEventListener('click', () => ask('Clear the Mission 5 plan and journal?', () => OI.store.resetEco()));
+    main.querySelector('#reset-m6').addEventListener('click', () => ask('Clear the Mission 6 alerts, hazard map and journal?', () => OI.store.resetVolcano()));
     main.querySelector('#reset-all').addEventListener('click', () => ask('Clear the team, all missions and the Island Log?', () => OI.store.resetAll()));
   }
 

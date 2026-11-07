@@ -24,6 +24,9 @@
   function freshEco() {
     return { phase: 'briefing', web: {}, plan: null, prediction: null, attempts: [], pendingTest: false, debrief: {}, completed: false };
   }
+  function freshVolcano() {
+    return { phase: 'briefing', day: 1, alerts: Array(10).fill(null), painted: {}, assembly: null, protect: {}, prediction: null, attempts: [], pendingTest: false, debrief: {}, completed: false };
+  }
   function fresh() {
     return {
       version: 1,
@@ -34,6 +37,7 @@
       build: freshBuild(),
       power: freshPower(),
       eco: freshEco(),
+      volcano: freshVolcano(),
       log: {} // the Island Log: results each mission leaves behind for the next
     };
   }
@@ -47,6 +51,7 @@
   state.build = Object.assign(freshBuild(), state.build);
   state.power = Object.assign(freshPower(), state.power);
   state.eco = Object.assign(freshEco(), state.eco);
+  state.volcano = Object.assign(freshVolcano(), state.volcano);
   state.power.design = Object.assign(OI.power.defaultDesign(), state.power.design);
   state.power.design.on = Object.assign(OI.power.defaultDesign().on, state.power.design.on);
   // the landing place is always known
@@ -64,6 +69,7 @@
       delete state.log.exploration;
       save();
     },
+    resetVolcano() { state.volcano = freshVolcano(); delete state.log.volcano; save(); },
     resetEco() { state.eco = freshEco(); delete state.log.eco; save(); },
     resetPower() { state.power = freshPower(); delete state.log.power; save(); },
     resetBuild() { state.build = freshBuild(); delete state.log.build; save(); },

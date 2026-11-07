@@ -19,7 +19,7 @@ The simulations add what slides can't: changing variables, making decisions and 
 | 3 | **Build to Survive** | ✅ Playable | Marshmallow earthquake towers, Tinkercad shelters |
 | 4 | **Power the Island** | ✅ Playable | Lava lamp ("It's dark!") |
 | 5 | **Protect the Ecosystem** | ✅ Playable | Observation activity (GooseChase) |
-| 6 | The Volcano Wakes | In design | Orange volcano, volcano-safe building, AR |
+| 6 | **The Volcano Wakes** | ✅ Playable | Orange volcano, volcano-safe building, AR |
 
 ### Mission 1: Explore the Island
 
@@ -44,6 +44,7 @@ js/water-model.js       Mission 2 water model
 js/build-model.js       Mission 3 structure physics (sticks and joints)
 js/power-model.js       Mission 4 hour-by-hour energy model
 js/eco-model.js         Mission 5 ten-year ecosystem model
+js/volcano-model.js     Mission 6 monitoring data and eruption hazards
 js/ui.js                shared interface pieces
 js/store.js             saved progress and the Island Log
 js/map-view.js          the map (canvas)
