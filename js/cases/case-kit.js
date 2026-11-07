@@ -194,6 +194,9 @@
     const api = {
       S, save, gloss, esc, question, bindQuestions, answered, say, go,
       stepDone(id) { S.data.stepDone = S.data.stepDone || {}; if (!S.data.stepDone[id]) { S.data.stepDone[id] = true; save(); side(); } },
+      // award points for a task other than a question: 2 on the first try, 1 after that
+      award(id, firstTry) { if (S.answers[id] && S.answers[id].correct) return; S.answers[id] = { correct: true, points: firstTry ? 2 : 1 }; save(); side(); },
+      tries(id) { S.data.tries = S.data.tries || {}; S.data.tries[id] = (S.data.tries[id] || 0) + 1; save(); return S.data.tries[id]; },
       complete(stageId) { if (!S.done[stageId]) { S.done[stageId] = true; save(); side(); } },
       next(stageId) { const i = stageIdx(stageId); const n = def.stages[i + 1]; return n && !n.locked ? n : null; },
       rerender() { renderStage(false); },

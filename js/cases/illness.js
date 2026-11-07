@@ -377,7 +377,7 @@
     </div>
     <div class="stage-tasks"><h2>What did you find?</h2>
       ${done ? `${predicted ? `<p class="note">Your prediction: <strong>${esc(predicted)}</strong>. Compare it with your lab notebook.</p>` : ''}${qs.map(q => api.question(q)).join('')}
-        ${api.answered(['l1', 'l2', 'l3']) ? '<p class="note">Stage 1 of this case is complete! Next: test your hypotheses and design the treatment plant. These stages are coming soon.</p>' : ''}`
+        ${api.answered(['l1', 'l2', 'l3']) ? '<div class="actions"><button type="button" class="btn primary" id="to-h1">Next: make a hypothesis</button></div>' : ''}`
         : '<p class="muted">Test every sample with the turbidity tube, the pH strip and the culture plate to unlock the questions. The microscope is an extra.</p>'}
     </div>`;
     el.querySelectorAll('[data-bottle]').forEach(btn => btn.addEventListener('click', () => { L.bottle = btn.dataset.bottle; L.pour = 0; L.dipped = null; api.save(); api.rerender(); }));
@@ -452,10 +452,287 @@
       });
     }
     api.bindQuestions(qs, () => { if (api.answered(['l1', 'l2', 'l3'])) { api.stepDone('findings'); api.complete('lab'); } });
+    const th = el.querySelector('#to-h1'); if (th) th.addEventListener('click', () => api.go('h1'));
   }
 
-  function locked(title, text) {
-    return (api, el) => { el.innerHTML = `<div class="stage-tasks"><h2>${esc(title)}</h2><p>${esc(text)}</p><p class="note">This stage is coming soon.</p></div>`; };
+  // ---------- stage 4: hypothesis 1 ----------
+  const EVIDENCE = [
+    { id: 'e1', icon: '🗺️', text: 'All 9 sick people drink river water.', col: 'for' },
+    { id: 'e2', icon: '🧫', text: 'The river below the toilet block had 160 E. coli per 100 mL.', col: 'for' },
+    { id: 'e3', icon: '⛲', text: 'Every family that drinks spring water is healthy.', col: 'for' },
+    { id: 'e4', icon: '🔥', text: 'The Rossi family boil their river water, and nobody there is sick.', col: 'for' },
+    { id: 'e5', icon: '🌉', text: 'River families who collect water above the bridge are healthy.', col: 'for' },
+    { id: 'e6', icon: '🛢️', text: 'The rain-tank sample had no E. coli.', col: 'for' },
+    { id: 'e7', icon: '🧪', text: 'Every sample had a normal pH, between 6 and 8.', col: 'none' },
+    { id: 'e8', icon: '🤧', text: 'A child in the Fofana family has a cough and a runny nose.', col: 'none' }
+  ];
+  const COLS = { for: 'Supports the hypothesis', against: 'Goes against it', none: 'Does not help decide' };
+  function renderH1(api, el) {
+    const S = api.S, st = S.data.h1 = S.data.h1 || { place: {}, pick: null };
+    const q = { id: 'h1a', text: 'Your hypothesis: which water is making people sick?', options: ['Water from the spring', 'Water from the rain tanks', 'River water collected above the bridge', 'River water collected below the toilet block'], correct: 3, explain: 'Now test it: sort every piece of evidence.', hint: 'Look at your evidence table and lab notebook. Which water did all the sick families drink, and which sample had the most E. coli?' };
+    const sorted = EVIDENCE.every(e => st.place[e.id]);
+    el.innerHTML = `<div class="stage-tasks"><p data-read>${api.gloss('A hypothesis is a possible explanation. Choose the hypothesis that best fits your evidence so far, then test it against every piece of evidence.')}</p>${api.question(q)}</div>
+      ${api.answered(['h1a']) ? `<div class="board">
+        <p class="board-help" data-read>Hypothesis: river water below the toilet block is making people sick. Tap a card, then tap the column it belongs in.</p>
+        <div class="cards">${EVIDENCE.filter(e => !st.place[e.id]).map(e => `<button type="button" class="ev-card ${st.pick === e.id ? 'picked' : ''}" data-ev="${e.id}"><span aria-hidden="true">${e.icon}</span>${esc(e.text)}</button>`).join('') || '<p class="muted">All cards sorted.</p>'}</div>
+        <div class="columns">${Object.entries(COLS).map(([k, t]) => `<div class="ev-col" data-col="${k}" role="button" tabindex="0" aria-label="Put the card in: ${t}"><h3>${t}</h3>${EVIDENCE.filter(e => st.place[e.id] === k).map(e => `<button type="button" class="ev-card placed ${st.wrong && st.wrong.includes(e.id) ? 'wrong' : ''}" data-back="${e.id}"><span aria-hidden="true">${e.icon}</span>${esc(e.text)}</button>`).join('')}</div>`).join('')}</div>
+        <div class="actions"><button type="button" class="btn primary" id="check-board" ${sorted && !api.answered(['h1b']) ? '' : 'disabled'}>Check my sorting</button></div>
+        <p class="calc-fb ${api.answered(['h1b']) ? 'ok' : ''}" id="board-fb" aria-live="polite">${api.answered(['h1b']) ? 'Correct. Six pieces of evidence support the hypothesis, none go against it, and two do not help decide. A strong hypothesis!' : ''}</p>
+      </div>
+      ${api.answered(['h1b']) ? '<div class="actions"><button type="button" class="btn primary" id="to-h2">Next: why did it start after the storm?</button></div>' : ''}` : ''}`;
+    api.bindQuestions([q], () => api.stepDone('choose'));
+    el.querySelectorAll('[data-ev]').forEach(b => b.addEventListener('click', () => { st.pick = st.pick === b.dataset.ev ? null : b.dataset.ev; api.save(); api.rerender(); }));
+    el.querySelectorAll('[data-col]').forEach(c => { const put = () => { if (!st.pick) return; st.place[st.pick] = c.dataset.col; st.pick = null; st.wrong = null; api.save(); api.rerender(); }; c.addEventListener('click', e => { if (!e.target.closest('[data-back]')) put(); }); c.addEventListener('keydown', e => { if (e.key === 'Enter') put(); }); });
+    el.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => { if (api.answered(['h1b'])) return; delete st.place[b.dataset.back]; st.wrong = null; api.save(); api.rerender(); }));
+    const cb = el.querySelector('#check-board');
+    if (cb) cb.addEventListener('click', () => {
+      const wrong = EVIDENCE.filter(e => st.place[e.id] !== e.col).map(e => e.id), n = api.tries('h1b');
+      if (!wrong.length) { api.award('h1b', n === 1); api.stepDone('sort'); api.complete('h1'); api.rerender(); }
+      else { st.wrong = wrong; api.save(); api.rerender(); const fb = el.querySelector('#board-fb'); if (fb) { fb.className = 'calc-fb no'; fb.textContent = `${wrong.length} card${wrong.length > 1 ? 's are' : ' is'} in the wrong column (marked in red). Tap a card to take it back.`; } }
+    });
+    const nx = el.querySelector('#to-h2'); if (nx) nx.addEventListener('click', () => api.go('h2'));
+  }
+
+  // ---------- stage 5: hypothesis 2 ----------
+  const DAYS = [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7];
+  const TL = {
+    rain: { name: 'Rainfall (mm)', vals: [0, 4, 180, 55, 8, 0, 0, 0, 0, 0], max: 200, color: '#2F8FD0' },
+    level: { name: 'River level (m)', vals: [0.6, 0.7, 2.4, 1.9, 1.3, 1.0, 0.9, 0.8, 0.8, 0.7], max: 2.5, color: '#2B7A8C', line: 1.8, lineLabel: 'Toilet block floods' },
+    ecoli: { name: 'E. coli below the toilet block (per 100 mL)', vals: [6, 5, 900, 700, 400, 260, 200, 170, 160, 150], max: 1000, color: '#8C6A3A' },
+    cases: { name: 'New cases of illness', vals: [0, 0, 0, 0, 0, 2, 3, 1, 2, 1], max: 4, color: '#C2412D' }
+  };
+  const ONSET = { nkosi: 3, patel: 3, okafor: 4, quispe: 6 };
+  function riverScene(day) {
+    const i = DAYS.indexOf(day), lvl = TL.level.vals[i], ecol = TL.ecoli.vals[i];
+    const w = 40 + lvl * 26, flood = lvl > 1.8, plume = Math.min(1, ecol / 700);
+    const houses = [['kowalski', 120, 70, 'up'], ['lima', 200, 330, 'up'], ['nkosi', 640, 70, 'down'], ['okafor', 760, 330, 'down'], ['patel', 860, 70, 'down'], ['quispe', 930, 330, 'down'], ['rossi', 560, 340, 'down']];
+    return `<svg viewBox="0 0 1000 400" class="river-scene" role="img" aria-label="River on day ${day}: river level ${lvl} m${flood ? ', toilet block flooded' : ''}">
+      <rect width="1000" height="400" fill="${day === 0 ? '#8FA27C' : '#A6C273'}"/>
+      ${day === 0 || day === 1 ? Array.from({ length: day === 0 ? 70 : 25 }, (_, k) => `<line x1="${(k * 137) % 1000}" y1="${(k * 53) % 400}" x2="${(k * 137) % 1000 - 8}" y2="${(k * 53) % 400 + 18}" stroke="rgba(230,240,250,0.8)" stroke-width="2"/>`).join('') : ''}
+      ${flood ? `<ellipse cx="420" cy="160" rx="120" ry="70" fill="#4B9EC8" opacity="0.55"/>` : ''}
+      <rect x="0" y="${200 - w / 2}" width="1000" height="${w}" fill="#4B9EC8"/>
+      <rect x="0" y="${200 - w / 2}" width="1000" height="6" fill="#6E8A5A" opacity="0.6"/><rect x="0" y="${200 + w / 2 - 6}" width="1000" height="6" fill="#6E8A5A" opacity="0.6"/>
+      ${plume > 0.05 ? `<path d="M420,${200 - w * 0.2} C560,${200 - w * 0.35} 760,${200 + w * 0.1} 1000,${200 - w * 0.05} L1000,${200 + w * 0.35} C760,${200 + w * 0.4} 560,${200 + w * 0.15} 420,${200 + w * 0.15} Z" fill="#7A5634" opacity="${(0.25 + plume * 0.55).toFixed(2)}"/>` : ''}
+      <g transform="translate(300,200)"><rect x="-14" y="${-w / 2 - 14}" width="28" height="${w + 28}" fill="#8A6A44" stroke="#4d3a24" stroke-width="2"/><text y="${-w / 2 - 22}" text-anchor="middle" class="vlabel">Bridge</text></g>
+      <g transform="translate(420,${118 - (flood ? 0 : 0)})"><rect x="-26" y="-18" width="52" height="32" fill="#B89A72" stroke="#4d3a24" stroke-width="2"/><polygon points="-30,-17 0,-32 30,-17" fill="#7A5634" stroke="#4d3a24" stroke-width="2"/><text y="-40" text-anchor="middle" class="vlabel">Toilet block${flood ? ': flooded!' : ''}</text></g>
+      <text x="20" y="${200 + 5}" class="vlabel">Upstream →</text><text x="980" y="${200 + 5}" text-anchor="end" class="vlabel">→ Downstream</text>
+      ${houses.map(([id, x, y, side]) => { const f = FAMILIES.find(q => q.id === id), ill = ONSET[id] != null && day >= ONSET[id];
+        return `<g transform="translate(${x},${y})"><rect x="-20" y="-8" width="40" height="24" fill="#F3E4C4" stroke="#6b5a40" stroke-width="1.5"/><polygon points="-24,-7 0,-26 24,-7" fill="${side === 'up' ? '#6B5AA8' : '#8C6A3A'}" stroke="#3a2e22"/><text y="34" text-anchor="middle" class="vlabel">${f.name}</text>${ill ? `<g transform="translate(20,-24)"><circle r="11" fill="#C2412D" stroke="#fff" stroke-width="2"/><text y="5" text-anchor="middle" class="vbadge">${f.sick}</text></g>` : ''}</g>`; }).join('')}
+      <g transform="translate(870,30)"><rect x="-70" y="-18" width="140" height="34" rx="8" fill="#10262E"/><text y="5" text-anchor="middle" fill="#fff" font-weight="700" font-size="16">${day === 0 ? 'Day 0: STORM' : day < 0 ? `${-day} day${day < -1 ? 's' : ''} before` : `Day ${day}`}</text></g>
+    </svg>`;
+  }
+  function timeline(day, show) {
+    const W = 760, L = 70, R = 14, rowH = 70, gap = 18, keys = Object.keys(TL).filter(k => show[k]);
+    const H = keys.length * (rowH + gap) + 36, x0 = L, x1 = W - R, X = i => x0 + (i + 0.5) * ((x1 - x0) / DAYS.length), bw = (x1 - x0) / DAYS.length;
+    const di = DAYS.indexOf(day);
+    return `<svg viewBox="0 0 ${W} ${H}" class="timeline-svg" role="img" aria-label="Timeline of rainfall, river level, E. coli and illness">
+      <rect x="${X(di) - bw / 2}" y="0" width="${bw}" height="${H - 24}" class="tl-cur"/>
+      ${keys.map((k, r) => { const s = TL[k], top = 8 + r * (rowH + gap), Y = v => top + rowH - (v / s.max) * rowH;
+        return `<text x="${x0}" y="${top - 1}" class="ax-t">${esc(s.name)}</text>
+          <line x1="${x0}" x2="${x1}" y1="${top + rowH}" y2="${top + rowH}" class="grid"/>
+          <text x="${x0 - 6}" y="${top + 12}" class="ax" text-anchor="end">${s.max}</text><text x="${x0 - 6}" y="${top + rowH}" class="ax" text-anchor="end">0</text>
+          ${s.line ? `<line x1="${x0}" x2="${x1}" y1="${Y(s.line)}" y2="${Y(s.line)}" class="tl-line"/><text x="${x1}" y="${Y(s.line) - 4}" class="ax" text-anchor="end">${s.lineLabel}</text>` : ''}
+          ${k === 'level' ? `<path d="${s.vals.map((v, i) => `${i ? 'L' : 'M'}${X(i)},${Y(v)}`).join(' ')}" fill="none" stroke="${s.color}" stroke-width="2.5"/>${s.vals.map((v, i) => `<circle cx="${X(i)}" cy="${Y(v)}" r="3.5" fill="${s.color}"/>`).join('')}`
+            : s.vals.map((v, i) => v ? `<rect x="${X(i) - bw * 0.3}" y="${Y(v)}" width="${bw * 0.6}" height="${top + rowH - Y(v)}" rx="3" fill="${s.color}"/>` : '').join('')}
+          <text x="${X(di)}" y="${Math.max(top + 10, Y(s.vals[di]) - 6)}" class="ax-v" text-anchor="middle">${s.vals[di]}</text>`; }).join('')}
+      ${DAYS.map((d, i) => `<text x="${X(i)}" y="${H - 6}" class="ax" text-anchor="middle">${d === 0 ? 'Storm' : d}</text>`).join('')}
+    </svg>`;
+  }
+  const EVENTS = ['Heavy rain falls during the storm', 'The river rises and floods the toilet block', 'Waste washes into the river and flows downstream', 'Families below the toilet block drink the river water', 'Two or three days later, people fall ill'];
+  function renderH2(api, el) {
+    const S = api.S, st = S.data.h2 = S.data.h2 || { day: -2, show: { rain: true, level: true, ecoli: false, cases: true }, order: [2, 4, 0, 3, 1] };
+    const qa = { id: 'h2b', text: 'Why did people fall ill two or three days after the storm, not on the same day?', options: ['Germs need time to multiply in the body before people feel ill', 'The water only became dirty three days later', 'People only drank river water three days later'], correct: 0, explain: 'This delay is called the incubation period. The E. coli peak came on day 0, the illness from day 3.' };
+    const qb = { id: 'h2c', text: 'Why were the families above the bridge not affected?', options: ['A river carries waste downstream, not upstream', 'They drank less water', 'The bridge filters the water'], correct: 0, explain: 'Their water is collected upstream of the toilet block, so the waste never reaches it.' };
+    el.innerHTML = `<div class="stage-tasks"><p data-read>${api.gloss('You know which water is to blame. But the village used the river before the storm and nobody was ill. Move through the days and find out what changed.')}</p></div>
+      <div class="scene-frame">${riverScene(st.day)}</div>
+      <div class="day-ctl"><label class="ctl" for="day"><span>Day: <output class="mono" id="day-out">${st.day === 0 ? 'Storm (day 0)' : st.day}</output></span><input type="range" id="day" min="-2" max="7" step="1" value="${st.day}"></label>
+        <div class="seg">${Object.entries(TL).map(([k, s]) => `<label class="${st.show[k] ? 'on' : ''}"><input type="checkbox" data-layer="${k}" ${st.show[k] ? 'checked' : ''}> ${esc(s.name.split(' (')[0])}</label>`).join('')}</div></div>
+      <div class="chart-frame tl-frame">${timeline(st.day, st.show)}</div>
+      <div class="stage-tasks"><h2>Put the events in order</h2><p class="muted">Use the arrows to move each event. Start with what happened first.</p>
+        <ol class="order">${st.order.map((ev, i) => `<li class="${api.answered(['h2a']) ? 'ok' : ''}"><span class="order-n mono">${i + 1}</span><span>${esc(EVENTS[ev])}</span>${api.answered(['h2a']) ? '' : `<span class="order-btns"><button type="button" class="btn small ghost" data-up="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Move up">↑</button><button type="button" class="btn small ghost" data-down="${i}" ${i === st.order.length - 1 ? 'disabled' : ''} aria-label="Move down">↓</button></span>`}</li>`).join('')}</ol>
+        ${api.answered(['h2a']) ? '<p class="calc-fb ok">Correct. That chain of events explains the outbreak.</p>' : '<div class="actions"><button type="button" class="btn" id="check-order">Check the order</button></div><p class="calc-fb" id="order-fb" aria-live="polite"></p>'}
+        ${api.answered(['h2a']) ? api.question(qa) : ''}${api.answered(['h2a', 'h2b']) ? api.question(qb) : ''}
+        ${api.answered(['h2a', 'h2b', 'h2c']) ? '<div class="actions"><button type="button" class="btn primary" id="to-plant">Design the treatment plant</button></div>' : ''}
+      </div>`;
+    const day = el.querySelector('#day');
+    day.addEventListener('input', () => { st.day = Number(day.value); el.querySelector('.scene-frame').innerHTML = riverScene(st.day); el.querySelector('.tl-frame').innerHTML = timeline(st.day, st.show); el.querySelector('#day-out').textContent = st.day === 0 ? 'Storm (day 0)' : st.day; });
+    day.addEventListener('change', () => { api.save(); if (st.day >= 5) api.stepDone('timeline'); });
+    el.querySelectorAll('[data-layer]').forEach(c => c.addEventListener('change', () => { st.show[c.dataset.layer] = c.checked; api.save(); api.rerender(); }));
+    el.querySelectorAll('[data-up]').forEach(b => b.addEventListener('click', () => { const i = Number(b.dataset.up); [st.order[i - 1], st.order[i]] = [st.order[i], st.order[i - 1]]; api.save(); api.rerender(); }));
+    el.querySelectorAll('[data-down]').forEach(b => b.addEventListener('click', () => { const i = Number(b.dataset.down); [st.order[i + 1], st.order[i]] = [st.order[i], st.order[i + 1]]; api.save(); api.rerender(); }));
+    const co = el.querySelector('#check-order');
+    if (co) co.addEventListener('click', () => {
+      const n = api.tries('h2a'), right = st.order.filter((ev, i) => ev === i).length;
+      if (right === EVENTS.length) { api.award('h2a', n === 1); api.stepDone('order'); api.rerender(); }
+      else { const fb = el.querySelector('#order-fb'); fb.className = 'calc-fb no'; fb.textContent = `${right} of ${EVENTS.length} events are in the right place. Use the day slider to check what happened first.`; }
+    });
+    api.bindQuestions([qa, qb], () => { if (api.answered(['h2a', 'h2b', 'h2c'])) api.complete('h2'); });
+    const tp = el.querySelector('#to-plant'); if (tp) tp.addEventListener('click', () => api.go('plant'));
+  }
+
+  // ---------- stage 6: treatment plant ----------
+  const UNITS = {
+    screen: { name: 'Screen', icon: '▦', does: 'Catches leaves, sticks and rubbish.' },
+    settle: { name: 'Settling tank', icon: '◫', does: 'Water rests so mud sinks to the bottom.' },
+    sand: { name: 'Sand filter', icon: '▤', does: 'Sand and gravel trap tiny particles and most germs.' },
+    chlorine: { name: 'Chlorine dosing', icon: '✚', does: 'Chlorine kills the germs that are left.' },
+    store: { name: 'Covered storage tank', icon: '▣', does: 'Keeps clean water safe until it is used.' },
+    pond: { name: 'Open pond', icon: '◯', does: 'Stores water in the open, where birds and animals can reach it.' },
+    fert: { name: 'Fertiliser tank', icon: '✿', does: 'Adds plant food to the water.' }
+  };
+  const ORDER = ['screen', 'settle', 'sand', 'chlorine', 'store'];
+  function plantRun(st) {
+    // turbidity (NTU) and E. coli after each stage, then chlorine kill and residual
+    const steps = [{ ntu: 45, ec: 160 }, { ntu: 40, ec: 160 }, { ntu: 15, ec: 90 }, { ntu: 2, ec: 12 }];
+    const C = st.dose, T = st.time, ntu = 2;
+    const k = 0.6 / (1 + ntu / 5);
+    const ec = 12 * Math.exp(-k * C * T / 10);
+    const residual = Math.max(0, C - 0.5 - 0.01 * T);
+    const after = Math.round(ec * 10) / 10 < 0.5 ? 0 : Math.round(ec);
+    steps.push({ ntu: 2, ec: after }, { ntu: 2, ec: after });
+    return { steps, residual: Math.round(residual * 100) / 100, safe: after === 0, taste: residual > 1.5, protect: residual >= 0.2 };
+  }
+  function plantScene(st, run) {
+    const slots = ORDER.map((_, i) => 140 + i * 160);
+    const colorAt = i => { if (!run) return '#4B9EC8'; const n = run.steps[i + 1] ? run.steps[i + 1].ntu : 2; return n > 30 ? '#8C7350' : n > 10 ? '#7E9E9A' : '#5FB4E0'; };
+    return `<svg viewBox="0 0 1000 380" class="plant" role="img" aria-label="Water treatment plant with ${st.slots.filter(Boolean).length} of 5 stages placed">
+      <rect width="1000" height="380" fill="#E7EEEA"/>
+      <rect x="0" y="290" width="1000" height="90" fill="#C9B27C"/>
+      <path d="M0,150 C30,140 50,160 60,150" stroke="#4B9EC8" stroke-width="40" fill="none"/>
+      <text x="10" y="60" class="ax-t">River water in ↓</text>
+      <line x1="40" y1="200" x2="960" y2="200" stroke="#7A8B8F" stroke-width="14"/>
+      <line x1="40" y1="200" x2="960" y2="200" stroke="${run ? '#5FB4E0' : '#9FB3B8'}" stroke-width="6" ${run ? 'class="flow"' : ''}/>
+      ${slots.map((x, i) => { const u = st.slots[i] && UNITS[st.slots[i]], wrong = st.wrongSlots && st.wrongSlots.includes(i);
+        const r = run && run.steps[i + 1];
+        return `<g transform="translate(${x},200)" class="slot ${st.pickU && !u ? 'ready' : ''}" data-slot="${i}" role="button" tabindex="0" aria-label="Stage ${i + 1}${u ? ': ' + u.name : ', empty'}">
+          <rect x="-62" y="-110" width="124" height="170" rx="10" fill="${u ? '#fff' : 'rgba(255,255,255,0.4)'}" stroke="${wrong ? '#C2412D' : u ? '#10262E' : '#7A8B8F'}" stroke-width="${wrong ? 4 : 2.5}" ${u ? '' : 'stroke-dasharray="8 6"'}/>
+          ${u ? unitArt(st.slots[i], colorAt(i)) : `<text y="-20" text-anchor="middle" class="ax">Stage ${i + 1}</text><text y="0" text-anchor="middle" class="ax">Tap a card,</text><text y="16" text-anchor="middle" class="ax">then here</text>`}
+          ${u ? `<text y="78" text-anchor="middle" class="ax-t">${u.name}</text>` : ''}
+          ${r ? `<g transform="translate(0,${118})"><rect x="-62" y="-14" width="124" height="44" rx="6" fill="#10262E"/><text y="2" text-anchor="middle" fill="#fff" font-size="12">${r.ntu} NTU</text><text y="20" text-anchor="middle" fill="${r.ec ? '#F5A08E' : '#9BE3B0'}" font-size="12" font-weight="700">${r.ec} E. coli</text></g>` : ''}
+        </g>`; }).join('')}
+      <g transform="translate(965,200)"><rect x="-6" y="-40" width="12" height="40" fill="#7A8B8F"/><path d="M-6,-40 h30 v10 h-24 z" fill="#7A8B8F"/><text x="-4" y="-50" text-anchor="end" class="ax-t">To homes</text>${run ? `<circle cx="18" cy="-18" r="5" fill="#5FB4E0" class="drip"/>` : ''}</g>
+    </svg>`;
+  }
+  function unitArt(id, water) {
+    switch (id) {
+      case 'screen': return `<rect x="-40" y="-80" width="80" height="120" fill="${water}" opacity="0.6"/>${[-30, -15, 0, 15, 30].map(x => `<line x1="${x}" y1="-80" x2="${x}" y2="40" stroke="#4A636C" stroke-width="3"/>`).join('')}<text y="-88" text-anchor="middle" font-size="14">🍂</text>`;
+      case 'settle': return `<rect x="-50" y="-70" width="100" height="110" fill="${water}" opacity="0.7"/><rect x="-50" y="20" width="100" height="20" fill="#8C7350"/>`;
+      case 'sand': return `<rect x="-50" y="-80" width="100" height="40" fill="${water}" opacity="0.7"/><rect x="-50" y="-40" width="100" height="45" fill="#E3CF9B"/><rect x="-50" y="5" width="100" height="35" fill="#9C9384"/>${Array.from({ length: 14 }, (_, k) => `<circle cx="${-44 + (k * 7) % 90}" cy="${12 + (k * 11) % 24}" r="4" fill="#7A7062"/>`).join('')}`;
+      case 'chlorine': return `<rect x="-50" y="-60" width="100" height="100" fill="${water}" opacity="0.7"/><rect x="-20" y="-100" width="40" height="34" rx="6" fill="#F2B630" stroke="#10262E"/><text y="-78" text-anchor="middle" font-size="12" font-weight="700">Cl</text><line x1="0" y1="-66" x2="0" y2="-40" stroke="#F2B630" stroke-width="4" stroke-dasharray="4 4"/>`;
+      case 'store': return `<rect x="-50" y="-70" width="100" height="110" rx="6" fill="${water}" opacity="0.8"/><rect x="-56" y="-82" width="112" height="14" rx="4" fill="#4A636C"/>`;
+      case 'pond': return `<ellipse cx="0" cy="0" rx="52" ry="30" fill="${water}" opacity="0.7"/><text y="-40" text-anchor="middle" font-size="18">🐦</text>`;
+      default: return `<rect x="-50" y="-60" width="100" height="100" fill="#8CC152" opacity="0.6"/><text y="0" text-anchor="middle" font-size="22">✿</text>`;
+    }
+  }
+  function renderPlant(api, el) {
+    const S = api.S, st = S.data.plant = S.data.plant || { slots: [null, null, null, null, null], pickU: null, dose: 1, time: 10, runs: 0 };
+    const placedAll = st.slots.every(Boolean), built = api.answered(['t0']);
+    const run = st.ran ? plantRun(st) : null;
+    const qa = { id: 't1', text: 'Why must the water be filtered before the chlorine is added?', options: ['Mud and particles can hide germs from the chlorine', 'Chlorine makes the sand dirty', 'It does not matter what order they go in'], correct: 0, explain: 'Germs hide inside and behind particles, so chlorine works much better in clear water.' };
+    const qb = { id: 't2', text: 'Why leave a little chlorine in the water when it leaves the plant?', options: ['It keeps killing germs that get in on the way to people\'s homes', 'It makes the water taste better', 'It makes the water warmer'], correct: 0, explain: 'This "residual" chlorine protects the water in the pipes and buckets. About 0.2 to 1 mg per litre is enough.' };
+    el.innerHTML = `<div class="stage-tasks"><p data-read>${api.gloss('Design a treatment plant that turns river water into safe drinking water. Put the right stages in the right order, then set the chlorine for disinfection.')}</p></div>
+      <div class="scene-frame plant-frame">${plantScene(st, run)}</div>
+      ${!built ? `<div class="unit-cards">${Object.entries(UNITS).filter(([k]) => !st.slots.includes(k)).map(([k, u]) => `<button type="button" class="unit-card ${st.pickU === k ? 'picked' : ''}" data-unit="${k}"><span class="unit-ic" aria-hidden="true">${u.icon}</span><strong>${u.name}</strong><small>${u.does}</small></button>`).join('')}</div>
+        <div class="actions"><button type="button" class="btn primary" id="check-plant" ${placedAll ? '' : 'disabled'}>Check my design</button><button type="button" class="btn ghost" id="clear-plant">Clear</button></div>
+        <p class="calc-fb" id="plant-fb" aria-live="polite">${st.wrongSlots ? 'Stages with a red outline are not right yet. Tap a stage to take it out.' : ''}</p>`
+        : `<div class="dose">
+          <label class="ctl" for="dose"><span>Chlorine dose: <output class="mono" id="dose-out">${st.dose} mg/L</output></span><input type="range" id="dose" min="0" max="5" step="0.5" value="${st.dose}"></label>
+          <label class="ctl" for="ctime"><span>Contact time before the water leaves: <output class="mono" id="ctime-out">${st.time} min</output></span><input type="range" id="ctime" min="0" max="60" step="5" value="${st.time}"></label>
+          <p class="muted">Tip: chlorine needs both strength and time. Germs die faster with a higher dose or a longer contact time, but too much chlorine makes the water taste bad. Aim for 0.2 to 1 mg/L left in the water.</p>
+          <div class="actions"><button type="button" class="btn primary" id="run">Run the plant</button></div>
+          ${run ? `<div class="gauges">
+            <div class="${run.safe ? '' : 'bad'}"><span>E. coli at the tap</span><b class="mono">${run.steps[5].ec} per 100 mL</b></div>
+            <div class="${run.taste ? 'warn' : ''}"><span>Chlorine left in the water</span><b class="mono">${run.residual} mg/L</b></div>
+            <div class="${run.safe && !run.taste && run.protect ? '' : 'warn'}"><span>Verdict</span><b>${!run.safe ? 'Not safe yet' : run.taste ? 'Safe, but tastes too strong' : !run.protect ? 'Safe now, but no protection in the pipes' : 'Safe and protected'}</b></div></div>` : ''}
+        </div>`}
+      <div class="stage-tasks">${built && api.answered(['t3']) ? api.question(qa) : ''}${api.answered(['t1']) ? api.question(qb) : ''}
+        ${api.answered(['t1', 't2', 't3']) ? '<div class="actions"><button type="button" class="btn primary" id="to-summary">Write the case summary</button></div>' : ''}</div>`;
+    el.querySelectorAll('[data-unit]').forEach(b => b.addEventListener('click', () => { st.pickU = st.pickU === b.dataset.unit ? null : b.dataset.unit; api.save(); api.rerender(); }));
+    el.querySelectorAll('[data-slot]').forEach(g => {
+      const act = () => { if (built) return; const i = Number(g.dataset.slot); if (st.slots[i]) { st.slots[i] = null; } else if (st.pickU) { st.slots[i] = st.pickU; st.pickU = null; } st.wrongSlots = null; api.save(); api.rerender(); };
+      g.addEventListener('click', act); g.addEventListener('keydown', e => { if (e.key === 'Enter') act(); });
+    });
+    const cl = el.querySelector('#clear-plant'); if (cl) cl.addEventListener('click', () => { st.slots = [null, null, null, null, null]; st.wrongSlots = null; api.save(); api.rerender(); });
+    const cp = el.querySelector('#check-plant');
+    if (cp) cp.addEventListener('click', () => {
+      const n = api.tries('t0'), wrong = st.slots.map((u, i) => (u === ORDER[i] ? -1 : i)).filter(i => i >= 0);
+      if (!wrong.length) { st.wrongSlots = null; api.award('t0', n === 1); api.stepDone('build'); api.rerender(); }
+      else { st.wrongSlots = wrong; api.save(); api.rerender(); }
+    });
+    const dose = el.querySelector('#dose'), ct = el.querySelector('#ctime');
+    if (dose) {
+      dose.addEventListener('input', () => { el.querySelector('#dose-out').textContent = dose.value + ' mg/L'; });
+      ct.addEventListener('input', () => { el.querySelector('#ctime-out').textContent = ct.value + ' min'; });
+      el.querySelector('#run').addEventListener('click', () => {
+        st.dose = Number(dose.value); st.time = Number(ct.value); st.ran = true; st.runs += 1; api.save();
+        const r = plantRun(st);
+        if (r.safe && !r.taste && r.protect) { api.award('t3', st.runs <= 2); api.stepDone('dose'); }
+        api.rerender();
+      });
+    }
+    api.bindQuestions([qa, qb], () => { if (api.answered(['t1', 't2', 't3'])) api.complete('plant'); });
+    const ts = el.querySelector('#to-summary'); if (ts) ts.addEventListener('click', () => api.go('summary'));
+  }
+
+  // ---------- stage 7: case summary ----------
+  const RECS = [
+    ['Move the toilet block away from the river, above flood level', true],
+    ['Boil or treat all river water until the treatment plant is built', true],
+    ['Use the spring and the rain tanks for drinking water for now', true],
+    ['Test the water every week', true],
+    ['Close the spring', false],
+    ['Stop washing hands to save water', false]
+  ];
+  function reportText(api) {
+    const S = api.S, L = S.data.lab || { results: {} }, p = S.data.plant || {};
+    const visited = Object.keys(((S.data.map || {}).visited) || {}).length;
+    const team = OI.store.get().team || {}, name = (team.members || {}).hydrologist || 'the team Hydrologist';
+    const recs = (S.data.recs || []).map(i => RECS[i][0]);
+    return ['OPERATION ISLAND 2040 · CASE FILE #1: THE MYSTERY ILLNESS', `Case report by ${name}${team.name ? ` (${team.name})` : ''}`, '',
+      'THE PROBLEM', 'After the storm, nine villagers fell ill with stomach cramps, diarrhoea and fever.', '',
+      'EVIDENCE',
+      `- Interviewed ${visited} of 18 families: every sick family drinks river water collected below the toilet block. Families upstream, using the spring or rain tanks, or boiling their water stayed healthy.`,
+      `- Lab tests (E. coli per 100 mL): spring ${L.results.spring ? L.results.spring.culture : '—'}, rain tank ${L.results.tank ? L.results.tank.culture : '—'}, river above the bridge ${L.results.up ? L.results.up.culture : '—'}, river below the toilet block ${L.results.down ? L.results.down.culture : '—'}.`,
+      '- Timeline: the storm flooded the toilet block on day 0; E. coli in the river peaked; illness followed from day 3.', '',
+      'CONCLUSION', 'Flood water from the storm washed waste from the toilet block into the river. Families who drank river water downstream caught a waterborne illness.', '',
+      'TREATMENT PLANT', `Screen → settling tank → sand filter → chlorine (${p.dose || '—'} mg/L, ${p.time || '—'} min) → covered storage.`, '',
+      'RECOMMENDATIONS', ...(recs.length ? recs.map(r => '- ' + r) : ['—']), '',
+      'MESSAGE TO THE VILLAGE', (S.data.message || '').trim() || '—'].join('\n');
+  }
+  function renderSummary(api, el) {
+    const S = api.S, chosen = S.data.recs || [];
+    const right = RECS.map((r, i) => (r[1] ? i : -1)).filter(i => i >= 0);
+    const ok = api.answered(['s1']);
+    const total = Object.values(S.answers).reduce((a, x) => a + (x.points || 0), 0);
+    el.innerHTML = `<div class="report">
+      <div class="report-head"><span class="stamp ${ok ? 'closed' : ''}">${ok ? 'Case closed' : 'Draft'}</span><div><p class="eyebrow">Case report</p><h2>The Mystery Illness</h2></div></div>
+      <div class="report-grid">
+        <section><h3>The problem</h3><p>Nine villagers fell ill with stomach cramps, diarrhoea and fever after the storm.</p></section>
+        <section><h3>The cause</h3><p data-read>${api.gloss('The storm flooded the toilet block. Waste washed into the river and flowed downstream, contaminating the water that families below the toilet block drank. E. coli in that water caused the outbreak.')}</p></section>
+        <section><h3>The evidence</h3><ul><li>All sick families drink river water from below the toilet block.</li><li>160 E. coli per 100 mL below the toilet block; none in the spring or rain tank.</li><li>Families upstream, or who boil their water, stayed healthy.</li><li>Illness began 3 days after the flood: the incubation period.</li></ul></section>
+        <section><h3>The fix</h3><p>Screen → settling tank → sand filter → chlorine${S.data.plant ? ` (${S.data.plant.dose} mg/L for ${S.data.plant.time} min)` : ''} → covered storage.</p></section>
+      </div>
+      <h3>Your recommendations</h3><p class="muted">Choose every recommendation that would protect the village.</p>
+      <div class="cq-options">${RECS.map((r, i) => `<label class="${chosen.includes(i) ? 'on' : ''}"><input type="checkbox" data-rec="${i}" ${chosen.includes(i) ? 'checked' : ''} ${ok ? 'disabled' : ''}> ${esc(r[0])}</label>`).join('')}</div>
+      ${ok ? '<p class="calc-fb ok">Good recommendations: they fix the cause, protect people now and check the water in the future.</p>' : '<div class="actions"><button type="button" class="btn" id="check-recs">Check recommendations</button></div><p class="calc-fb" id="recs-fb" aria-live="polite"></p>'}
+      <label class="field"><span>Message to the village: explain what happened and what people should do, in words everyone can understand.</span><textarea id="message" rows="4">${esc(S.data.message || '')}</textarea></label>
+      ${ok ? `<div class="final"><span class="mono big">${total} / ${CASE.stages.reduce((a, s) => a + (s.points || 0), 0)}</span><span>Final score. Well done, Hydrologist!</span></div>` : ''}
+      <div class="actions"><button type="button" class="btn ghost" id="copy-report">Copy case report</button>${ok ? '<a class="btn primary" href="#">Back to Mission Control</a>' : ''}</div>
+      <p class="muted" id="copy-status" aria-live="polite"></p><textarea id="report-text" class="report-text" rows="8" readonly hidden></textarea>
+    </div>`;
+    el.querySelectorAll('[data-rec]').forEach(c => c.addEventListener('change', () => { const i = Number(c.dataset.rec); S.data.recs = c.checked ? chosen.concat(i) : chosen.filter(x => x !== i); api.save(); api.rerender(); }));
+    el.querySelector('#message').addEventListener('input', e => { S.data.message = e.target.value; api.save(); });
+    const cr = el.querySelector('#check-recs');
+    if (cr) cr.addEventListener('click', () => {
+      const n = api.tries('s1'), pick = (S.data.recs || []).slice().sort().join(',');
+      if (pick === right.join(',')) { api.award('s1', n === 1); api.stepDone('recs'); api.complete('summary'); OI.store.get().log.case1 = { score: Object.values(S.answers).reduce((a, x) => a + (x.points || 0), 0), at: new Date().toISOString() }; api.save(); api.rerender(); }
+      else { const fb = el.querySelector('#recs-fb'); fb.className = 'calc-fb no'; fb.textContent = 'Not quite. Choose only the actions that would really protect people. Is anything missing, or harmful?'; }
+    });
+    el.querySelector('#copy-report').addEventListener('click', () => {
+      const txt = reportText(api), status = el.querySelector('#copy-status'), ta = el.querySelector('#report-text');
+      const fallback = () => { ta.hidden = false; ta.value = txt; ta.focus(); ta.select(); status.textContent = 'Select all of the text below and copy it.'; };
+      try { navigator.clipboard.writeText(txt).then(() => { status.textContent = 'Report copied.'; }, fallback); } catch (e) { fallback(); }
+    });
   }
 
   const CASE = {
@@ -468,10 +745,14 @@
         coach: [{ sel: '[data-house="nkosi"]', text: 'Tap a house to interview the family. Start with the Nkosi family.' }, { sel: '#src-toggle', text: 'Show where each family collects its water.' }, { sel: '#tally', text: 'Your evidence table fills in as you interview more families.' }] },
       { id: 'lab', title: 'Water lab', color: '#D9B92E', points: 6, steps: [{ id: 'collect', title: 'Collect samples' }, { id: 'tests', title: 'Test the water' }, { id: 'findings', title: 'What did you find?' }], render: renderLab,
         coach: [{ sel: '[data-sample="down"]', text: 'Tap a yellow flag to collect a water sample.' }, { sel: '.bottle-btn', text: 'Choose which sample to test.' }, { sel: '#tool-turbidity', text: 'Choose an instrument. Each one tests something different.' }] },
-      { id: 'h1', title: 'Hypothesis 1', color: '#8CC152', locked: true, points: 0, render: locked('Hypothesis 1', 'Which source is making people sick?') },
-      { id: 'h2', title: 'Hypothesis 2', color: '#3FB6A8', locked: true, points: 0, render: locked('Hypothesis 2', 'Why did it start after the storm?') },
-      { id: 'plant', title: 'Treatment plant', color: '#4FA3E0', locked: true, points: 0, render: locked('Treatment plant', 'Design a treatment plant that makes the water safe.') },
-      { id: 'summary', title: 'Case summary', color: '#9B8BE0', locked: true, points: 0, render: locked('Case summary', 'Write up your case report.') }
+      { id: 'h1', title: 'Hypothesis 1', color: '#8CC152', points: 4, steps: [{ id: 'choose', title: 'Choose a hypothesis' }, { id: 'sort', title: 'Test it with evidence' }], render: renderH1,
+        coach: [{ sel: '.cq', text: 'Choose the hypothesis that best fits your evidence.' }, { sel: '.ev-card', text: 'Tap a card, then tap the column it belongs in.' }] },
+      { id: 'h2', title: 'Hypothesis 2', color: '#3FB6A8', points: 6, steps: [{ id: 'timeline', title: 'Explore the timeline' }, { id: 'order', title: 'Order the events' }], render: renderH2,
+        coach: [{ sel: '#day', text: 'Drag the slider to move through the days. Watch the river and the toilet block.' }, { sel: '.day-ctl .seg', text: 'Turn the timeline layers on and off.' }, { sel: '.order', text: 'Put the events in the order they happened.' }] },
+      { id: 'plant', title: 'Treatment plant', color: '#4FA3E0', points: 8, steps: [{ id: 'build', title: 'Build the plant' }, { id: 'dose', title: 'Set the chlorine' }], render: renderPlant,
+        coach: [{ sel: '.unit-card', text: 'Tap a stage card, then tap an empty slot in the plant. Not every card belongs!' }, { sel: '[data-slot="0"]', text: 'Water flows from left to right. What should happen first?' }] },
+      { id: 'summary', title: 'Case summary', color: '#9B8BE0', points: 2, steps: [{ id: 'recs', title: 'Recommendations' }], render: renderSummary,
+        coach: [{ sel: '.report-grid', text: 'Your case report is built from your own evidence.' }, { sel: '[data-rec="0"]', text: 'Choose the recommendations that would protect the village.' }] }
     ]
   };
 

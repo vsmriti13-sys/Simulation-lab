@@ -25,7 +25,14 @@ The simulations add what slides can't: changing variables, making decisions and 
 
 Shorter, guided investigations in a virtual-lab layout: a large interactive scene, a side panel with the case's stages and a Handbook, a glossary of tappable words, coach tips, read-aloud and a score saved on the device.
 
-**Case File #1: The Mystery Illness** (stages 1–3 playable): villagers fall ill after the storm. Learners read the clinic's message, interview 18 families on an illustrated outbreak map to find the pattern, collect water samples and test them in the virtual lab with a turbidity tube, pH strip, culture plate (with tap-to-count and the quarter method) and microscope. Hypotheses, the treatment plant and the case summary come next.
+**Case File #1: The Mystery Illness** (all 7 stages playable): villagers fall ill after the storm.
+1. Introduction: the clinic's message and an outbreak chart.
+2. Outbreak map: interview 18 families on an illustrated village map and find the pattern.
+3. Water lab: collect samples and test them with a turbidity tube, pH strip, culture plate (tap-to-count and the quarter method) and microscope.
+4. Hypothesis 1: choose a hypothesis and sort evidence cards into supports / goes against / does not help.
+5. Hypothesis 2: a day-by-day river scene and timeline (rain, river level, E. coli, cases) and an ordering task about the chain of events.
+6. Treatment plant: put the stages in order, set the chlorine dose and contact time, run the plant.
+7. Case summary: a report built from the learner's evidence, recommendations and a message to the village.
 
 ### Teacher Mode
 

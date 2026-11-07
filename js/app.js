@@ -76,7 +76,8 @@
       <h2 id="cases-h">Case Files</h2>
       <div class="case-card">
         <div><p class="eyebrow">Case File #1 · Guided virtual lab</p><h3>The Mystery Illness</h3>
-          <p>A week after the storm, villagers fall ill. As the team's Hydrologist, interview families on the outbreak map, collect water samples and test them in the virtual lab: turbidity tube, pH strip, culture plate and microscope.</p>
+          <p>A week after the storm, villagers fall ill. As the team's Hydrologist, interview families on the outbreak map, test water in the virtual lab, test two hypotheses against the evidence, design a treatment plant and close the case.</p>
+          ${s.log.case1 ? `<p class="mono">Case closed · score ${s.log.case1.score} / 32</p>` : ''}
           <p class="subjects">Science · Health · Maths · Literacy</p></div>
         <a class="btn primary" href="#case1">Open the case</a>
       </div>
