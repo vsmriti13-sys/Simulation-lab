@@ -614,3 +614,6 @@ tr.best td { font-weight: 700; background: var(--chip); }
 .final { display: flex; gap: 12px; align-items: baseline; padding: 12px 16px; background: var(--ink); color: var(--paper); border-radius: 8px; }
 @media (max-width: 760px) { .columns, .report-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .plant .flow, .plant .drip { animation: none; } }
+.nb-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.nb-go { padding: 3px 10px; font-size: 0.8rem; }
+.bench { scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 70px); }

@@ -235,9 +235,20 @@
   }
   const required = L => Object.keys(BOTTLES).every(b => L.results[b].turbidity && L.results[b].ph && L.results[b].culture != null);
 
+  // the 12 required tests, in a sensible order
+  function todo(L) {
+    const out = [];
+    Object.keys(BOTTLES).forEach(b => { const r = L.results[b]; if (!r.turbidity) out.push([b, 'turbidity']); if (!r.ph) out.push([b, 'ph']); if (r.culture == null) out.push([b, 'culture']); });
+    return out;
+  }
   function notebook(L) {
-    return `<div class="table-wrap"><table class="tally-t notebook"><caption>Lab notebook</caption><thead><tr><th>Sample</th><th>Turbidity</th><th>pH</th><th>E. coli per 100 mL</th><th>Microscope (1000×)</th></tr></thead><tbody>
-      ${Object.entries(BOTTLES).map(([b, B]) => { const r = L.results[b]; return `<tr class="${L.bottle === b ? 'cur' : ''}"><td>${esc(B.name)}</td><td class="mono">${r.turbidity || '—'}</td><td class="mono">${r.ph || '—'}</td><td class="mono ${r.culture > 0 ? 'sick' : ''}">${r.culture != null ? r.culture : '—'}</td><td>${r.micro || '—'}</td></tr>`; }).join('')}
+    const go = (b, tool, label) => `<button type="button" class="btn small ghost nb-go" data-go="${b}|${tool}">${label}</button>`;
+    const left = todo(L).length;
+    return `<div class="nb-head"><span class="mono">${12 - left} of 12 tests done${left ? ` · ${left} to go` : ' · all done!'}</span>${left ? `<button type="button" class="btn small primary" id="next-test">Next test →</button>` : ''}</div>
+      <div class="table-wrap"><table class="tally-t notebook"><caption>Lab notebook</caption><thead><tr><th>Sample</th><th>Turbidity</th><th>pH</th><th>E. coli per 100 mL</th><th>Microscope (1000×, extra)</th></tr></thead><tbody>
+      ${Object.entries(BOTTLES).map(([b, B]) => { const r = L.results[b]; return `<tr class="${L.bottle === b ? 'cur' : ''}"><td>${esc(B.name)}</td>
+        <td class="mono">${r.turbidity || go(b, 'turbidity', 'Test')}</td><td class="mono">${r.ph || go(b, 'ph', 'Test')}</td>
+        <td class="mono ${r.culture > 0 ? 'sick' : ''}">${r.culture != null ? r.culture : go(b, 'culture', 'Test')}</td><td>${r.micro || go(b, 'micro', 'Look')}</td></tr>`; }).join('')}
     </tbody></table></div>`;
   }
 
@@ -378,10 +389,14 @@
     <div class="stage-tasks"><h2>What did you find?</h2>
       ${done ? `${predicted ? `<p class="note">Your prediction: <strong>${esc(predicted)}</strong>. Compare it with your lab notebook.</p>` : ''}${qs.map(q => api.question(q)).join('')}
         ${api.answered(['l1', 'l2', 'l3']) ? '<div class="actions"><button type="button" class="btn primary" id="to-h1">Next: make a hypothesis</button></div>' : ''}`
-        : '<p class="muted">Test every sample with the turbidity tube, the pH strip and the culture plate to unlock the questions. The microscope is an extra.</p>'}
+        : `<p class="note">The questions unlock when all 12 tests are done: every sample with the turbidity tube, the pH strip and the culture plate (${todo(L).length} still to do). Tap <strong>Test</strong> in the notebook, or <strong>Next test</strong>. The microscope is an extra.</p>`}
     </div>`;
     el.querySelectorAll('[data-bottle]').forEach(btn => btn.addEventListener('click', () => { L.bottle = btn.dataset.bottle; L.pour = 0; L.dipped = null; api.save(); api.rerender(); }));
     el.querySelectorAll('[data-tool]').forEach(btn => btn.addEventListener('click', () => { L.tool = btn.dataset.tool; api.save(); api.rerender(); }));
+    // jump to a sample + instrument and bring the bench into view
+    const jump = (bt, tool) => { L.bottle = bt; L.tool = tool; L.pour = 0; L.dipped = null; api.save(); api.rerender(); const bench = document.querySelector('.bench'); if (bench) bench.scrollIntoView({ block: 'start', behavior: 'smooth' }); };
+    el.querySelectorAll('[data-go]').forEach(btn => btn.addEventListener('click', () => { const [bt, tool] = btn.dataset.go.split('|'); jump(bt, tool); }));
+    const nt = el.querySelector('#next-test'); if (nt) nt.addEventListener('click', () => { const t = todo(L)[0]; if (t) jump(t[0], t[1]); });
     const b = L.bottle, R = L.results[b];
     const record = (k, v) => { R[k] = v; api.save(); if (required(L)) api.stepDone('tests'); };
     if (L.tool === 'turbidity') {
