@@ -74,13 +74,7 @@
 
     <section class="case-promo" aria-labelledby="cases-h">
       <h2 id="cases-h">Case Files</h2>
-      <div class="case-card">
-        <div><p class="eyebrow">Case File #1 · Guided virtual lab</p><h3>The Mystery Illness</h3>
-          <p>A week after the storm, villagers fall ill. As the team's Hydrologist, interview families on the outbreak map, test water in the virtual lab, test two hypotheses against the evidence, design a treatment plant and close the case.</p>
-          ${s.log.case1 ? `<p class="mono">Case closed · score ${s.log.case1.score} / 32</p>` : ''}
-          <p class="subjects">Science · Health · Maths · Literacy</p></div>
-        <a class="btn primary" href="#case1">Open the case</a>
-      </div>
+      ${caseCards(s)}
     </section>
 
     <section aria-labelledby="missions-h">
@@ -112,6 +106,26 @@
       </div>
       <p id="reset-confirm" class="confirm" hidden></p>
     </section>`;
+  }
+
+  // Case Files: guided virtual-lab investigations
+  const CASES = [
+    { id: 'case1', key: 'case1', n: 1, title: 'The Mystery Illness', role: 'Hydrologist', subjects: 'Science · Health · Maths · Literacy',
+      blurb: 'A week after the storm, villagers fall ill. Interview families on the outbreak map, test the water in the virtual lab, test two hypotheses, design a treatment plant and close the case.', max: 32 },
+    { id: 'case2', key: 'case2', n: 2, title: 'The Fallen Hall', role: 'Engineer', subjects: 'Physics · Engineering · Maths',
+      blurb: 'An earthquake brings down the school hall, but the clinic next door stands. Inspect the site, push, weigh and shake in the force lab, run fair tests and design a safe new hall.', max: 26 }
+  ];
+  function caseCards(s) {
+    return `<div class="case-cards">${CASES.map(c => `<div class="case-card">
+      <div><p class="eyebrow">Case File #${c.n} · You are the ${c.role}</p><h3>${c.title}</h3><p>${c.blurb}</p><p class="subjects">${c.subjects}</p>
+        ${s.log[c.key] ? `<p class="mono">Case closed · score ${s.log[c.key].score} / ${c.max}</p>` : ''}</div>
+      <a class="btn primary" href="#${c.id}">${s.log[c.key] ? 'Revisit the case' : 'Open the case'}</a></div>`).join('')}</div>`;
+  }
+  function casesPage() {
+    const s = OI.store.get();
+    return `<div class="teacher"><header class="mission-head"><div><p class="eyebrow">Guided virtual labs</p><h1 class="display">Case Files</h1></div>
+      <p class="lede">Shorter, guided investigations: collect evidence, run experiments, test hypotheses and close the case. Each case has a handbook, a glossary, coach tips and read-aloud.</p></header>
+      ${caseCards(s)}</div>`;
   }
 
   function guide() {
@@ -301,7 +315,8 @@
     const main = document.getElementById('app');
     if (current && current.unmount) current.unmount();
     current = null;
-    document.querySelectorAll('.topnav a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + view || (view === '' && a.getAttribute('href') === '#') ? 'page' : 'false'));
+    const navView = /^case\d/.test(view) ? 'cases' : view;
+    document.querySelectorAll('.topnav a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + navView || (navView === '' && a.getAttribute('href') === '#') ? 'page' : 'false'));
     if (view === 'explore') { current = OI.missions.exploration; current.mount(main); }
     else if (view === 'water') { current = OI.missions.water; current.mount(main); }
     else if (view === 'build') { current = OI.missions.build; current.mount(main); }
@@ -311,6 +326,8 @@
     else if (view === 'guide') { main.innerHTML = guide(); }
     else if (view === 'teacher') { OI.teacher.render(main); }
     else if (view === 'case1') { current = OI.cases.illness; current.mount(main); }
+    else if (view === 'case2') { current = OI.cases.hall; current.mount(main); }
+    else if (view === 'cases') { main.innerHTML = casesPage(); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
     document.getElementById('team-chip').textContent = team ? 'Team: ' + team : '';

@@ -34,6 +34,17 @@ Shorter, guided investigations in a virtual-lab layout: a large interactive scen
 6. Treatment plant: put the stages in order, set the chlorine dose and contact time, run the plant.
 7. Case summary: a report built from the learner's evidence, recommendations and a message to the village.
 
+**Case File #2: The Fallen Hall** (all 7 stages playable): an earthquake brings down the school hall while the clinic next door stands. Learners are the Engineer.
+1. Introduction: the council's message, a seismograph trace and before/after drawings.
+2. Site inspection: tap 10 hotspots on an illustrated site and compare the buildings.
+3. Force lab: push test (square vs braced frames), roof weight (force = mass × acceleration) and ground trays (rock, soil, sand and liquefaction).
+4. Hypothesis 1: sort evidence into causes (weak frame, heavy roof, soft ground).
+5. Hypothesis 2: fair tests, changing one thing at a time, with the force ÷ strength calculation shown.
+6. New hall: choose bracing, roof, site, joints, foundations and straps within 90 credits; test against a magnitude 7 earthquake and a 130 km/h storm.
+7. Case summary: report, building rules for the island and a message to the council.
+
+The case uses a transparent engineering check (force = mass × acceleration × ground effect, compared with bracing × joints × foundations), so learners can verify every result.
+
 ### Teacher Mode
 
 For any teacher, not only STEM: choose a subject (science, maths, geography, English and languages, history, art and design, music, citizenship, economics, computing), an age group (7–10, 11–14, 15+), the time available (one lesson, half a day, a week) and an optional learning goal. Teacher Mode suggests the best-fitting missions, each with a subject task, the product pupils make, a timed lesson structure and age adaptations, and the plan can be copied into a planning document.
@@ -69,6 +80,7 @@ js/missions/*.js        one file per mission
 js/teacher.js           Teacher Mode: subject ideas for every mission
 js/cases/case-kit.js    the Case Files player (stages, handbook, glossary, coach tips, read-aloud)
 js/cases/illness.js     Case File #1: The Mystery Illness
+js/cases/hall.js        Case File #2: The Fallen Hall
 js/app.js               Mission Control hub, facilitator guide, routing
 ```
 
