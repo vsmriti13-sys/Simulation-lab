@@ -102,6 +102,15 @@
           ctx.fillStyle = grad; ctx.fillRect(x - ts, y - ts, ts * 2, ts * 2);
         }
       }
+      // painted squares (land-use zones and similar)
+      (v.tiles || []).forEach(T => {
+        ctx.fillStyle = T.fill; ctx.fillRect(T.c * ts + 1, T.r * ts + 1, ts - 2, ts - 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1.5; ctx.strokeRect(T.c * ts + 1.5, T.r * ts + 1.5, ts - 3, ts - 3);
+        if (T.label) {
+          ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.max(9, ts * 0.36)}px "IBM Plex Mono", monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.strokeStyle = 'rgba(16,38,46,0.7)'; ctx.lineWidth = 3; ctx.strokeText(T.label, (T.c + 0.5) * ts, (T.r + 0.5) * ts); ctx.fillText(T.label, (T.c + 0.5) * ts, (T.r + 0.5) * ts);
+        }
+      });
       // storm flooding
       if (v.stormT != null) {
         for (let r = 0; r < W.ROWS; r++) for (let c = 0; c < W.COLS; c++) {

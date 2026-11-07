@@ -21,6 +21,9 @@
   function freshPower() {
     return { phase: 'briefing', answers: {}, design: OI.power.defaultDesign(), prediction: null, attempts: [], pendingTest: false, debrief: {}, completed: false };
   }
+  function freshEco() {
+    return { phase: 'briefing', web: {}, plan: null, prediction: null, attempts: [], pendingTest: false, debrief: {}, completed: false };
+  }
   function fresh() {
     return {
       version: 1,
@@ -30,6 +33,7 @@
       water: freshWater(),
       build: freshBuild(),
       power: freshPower(),
+      eco: freshEco(),
       log: {} // the Island Log: results each mission leaves behind for the next
     };
   }
@@ -42,6 +46,7 @@
   state.water.design = Object.assign(OI.water.defaultDesign(), state.water.design);
   state.build = Object.assign(freshBuild(), state.build);
   state.power = Object.assign(freshPower(), state.power);
+  state.eco = Object.assign(freshEco(), state.eco);
   state.power.design = Object.assign(OI.power.defaultDesign(), state.power.design);
   state.power.design.on = Object.assign(OI.power.defaultDesign().on, state.power.design.on);
   // the landing place is always known
@@ -59,6 +64,7 @@
       delete state.log.exploration;
       save();
     },
+    resetEco() { state.eco = freshEco(); delete state.log.eco; save(); },
     resetPower() { state.power = freshPower(); delete state.log.power; save(); },
     resetBuild() { state.build = freshBuild(); delete state.log.build; save(); },
     resetWater() { state.water = freshWater(); delete state.log.water; save(); },

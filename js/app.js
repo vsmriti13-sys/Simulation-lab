@@ -21,9 +21,9 @@
       subjects: ['Physics', 'Maths', 'Technology', 'Economics'],
       blurb: '"It\'s dark!" Audit the settlement\'s energy use, then keep the lights and the vaccine fridge on for 7 days with sun, wind, batteries or diesel.',
       physical: ['Lava lamp build'] },
-    { id: 'ecosystem', n: 5, title: 'Protect the Ecosystem', status: 'soon', day: 'Day 4',
+    { id: 'eco', n: 5, title: 'Protect the Ecosystem', status: 'open', day: 'Day 5',
       subjects: ['Biology', 'Geography', 'Environmental science'],
-      blurb: 'Your settlement grows. Decide on land use, farming and waste, and see what it does to the turtles, reef and forest.',
+      blurb: 'The settlement grows to 150 people. Paint a 10-year land-use plan, set fishing and waste rules, and watch what happens to the reef, forest, turtles and seabirds.',
       physical: ['Observation activity: animals, plants, birds, weather'] },
     { id: 'volcano', n: 6, title: 'The Volcano Wakes', status: 'soon', day: 'Day 5',
       subjects: ['Earth science', 'Engineering', 'Geography'],
@@ -33,7 +33,8 @@
 
   function hub() {
     const s = OI.store.get(), log = s.log.exploration, e = s.exploration, wlog = s.log.water;
-    const done = { explore: e.completed, water: s.water.completed, build: s.build.completed, power: s.power.completed };
+    const done = { explore: e.completed, water: s.water.completed, build: s.build.completed, power: s.power.completed, eco: s.eco.completed };
+    const elog = s.log.eco;
     const plog = s.log.power;
     const blog = s.log.build;
     const started = e.phase !== 'briefing' || e.hoursUsed > 0;
@@ -60,6 +61,7 @@
           <div><span class="label">Storm test</span><strong class="mono">${log.score}/18</strong></div>
           <div><span class="label">Discoveries</span><strong class="mono">${finds.length}</strong><small>${finds.slice(0, 6).map(f => f.icon).join(' ')}</small></div>
           ${wlog ? `<div><span class="label">Water system</span><strong class="mono">${wlog.score}/15</strong><small>Safe water on ${wlog.daysSafe} of 30 days</small></div>` : ''}
+          ${elog ? `<div><span class="label">Ecosystem</span><strong class="mono">${elog.score}/15</strong><small>Year 10: ${elog.fish} t fish, ${elog.cover}% forest, ${elog.turtles} turtle nests</small></div>` : ''}
           ${plog ? `<div><span class="label">Power</span><strong class="mono">${plog.score}/15</strong><small>Lights on ${plog.lit} of ${plog.litOf} evening hours${plog.fuel ? ` · ${plog.fuel} L diesel` : ''}</small></div>` : ''}
           ${blog ? `<div><span class="label">Shelter</span><strong class="mono">${blog.score}/15</strong><small>Earthquake: ${blog.quake === 'stand' ? 'stood' : blog.quake === 'damage' ? 'damaged' : 'collapsed'} · storm: ${blog.storm === 'stand' ? 'stood' : blog.storm === 'damage' ? 'damaged' : 'collapsed'}</small></div>` : ''}
         </div>
@@ -90,6 +92,7 @@
         <button class="btn ghost" id="reset-m2">Reset Mission 2</button>
         <button class="btn ghost" id="reset-m3">Reset Mission 3</button>
         <button class="btn ghost" id="reset-m4">Reset Mission 4</button>
+        <button class="btn ghost" id="reset-m5">Reset Mission 5</button>
         <button class="btn ghost danger" id="reset-all">Reset everything</button>
       </div>
       <p id="reset-confirm" class="confirm" hidden></p>
@@ -184,6 +187,26 @@
         <li>Weather for everyone: sunny Mon–Tue, cloudy and windy Wed, storm Thu, grey and still Fri, sunny Sat–Sun.</li>
       </ul>
 
+      <h2>Mission 5: Protect the Ecosystem (60–90 minutes)</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Stage</th><th>Time</th><th>What happens</th><th>Your role</th></tr></thead>
+        <tbody>
+          <tr><td>Briefing</td><td class="mono">5 min</td><td>The settlement will grow to 150 people in 10 years. The Biologist leads.</td><td>Frame it as a town-planning meeting.</td></tr>
+          <tr><td>Food web</td><td class="mono">10–15 min</td><td>A reef food web and five cause-and-effect questions (overfishing, soil runoff, fertiliser, lights and turtles, mangroves).</td><td>Ask learners to trace each chain aloud.</td></tr>
+          <tr><td>Plan and predict</td><td class="mono">20 min</td><td>Paint village, farm, logging and protected zones on the map; set boats, marine reserve, fertiliser, waste, logging style and turtle-friendly lights.</td><td>Let different experts argue for different parts of the island.</td></tr>
+          <tr><td>10-year test</td><td class="mono">5–10 min</td><td>Six small charts, year by year: people fed, fish, reef health, forest, turtles, seabirds.</td><td>Use the "What" questions.</td></tr>
+          <tr><td>Debrief</td><td class="mono">20–30 min</td><td>Observation walk (GooseChase): animals, plants, birds, weather. Journal and 3-2-1.</td><td>Link the island to the local environment.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Mission 5 rules</h3>
+      <ul>
+        <li>People: 30 now, 12 more each year. Each village square houses 40; farms feed 25 people a year (hills 15). Chemical fertiliser +30%, compost +15% (needs composted waste).</li>
+        <li>Fish: up to 200 t on a healthy reef, breeding 50% a year when there is room (logistic growth), so the safe yield is about 25 t a year. Each boat catches about 6 t. A marine reserve cuts the catch 20% but speeds breeding 30%.</li>
+        <li>Reef health falls with cleared forest, farms, chemical fertiliser, waste in the sea and overfishing. Lower reef health means fewer fish.</li>
+        <li>Clear-cut logging removes 30% of a square's trees a year; selective logging with replanting about 2%. New houses need timber; any shortfall is shipped in.</li>
+        <li>Turtles lose nests when the village or farms come close to their beach (halved with turtle-friendly lights); seabirds when the village or logging come close to their cliffs.</li>
+      </ul>
+
       <h2>The science model</h2>
       <p>The rules are deliberately simple and visible, so learners can reason with them and check the maths:</p>
       <ul>
@@ -249,6 +272,7 @@
     else if (view === 'water') { current = OI.missions.water; current.mount(main); }
     else if (view === 'build') { current = OI.missions.build; current.mount(main); }
     else if (view === 'power') { current = OI.missions.power; current.mount(main); }
+    else if (view === 'eco') { current = OI.missions.eco; current.mount(main); }
     else if (view === 'guide') { main.innerHTML = guide(); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
@@ -276,6 +300,7 @@
     main.querySelector('#reset-m2').addEventListener('click', () => ask('Clear the Mission 2 water design and journal?', () => OI.store.resetWater()));
     main.querySelector('#reset-m3').addEventListener('click', () => ask('Clear the Mission 3 shelter design and journal?', () => OI.store.resetBuild()));
     main.querySelector('#reset-m4').addEventListener('click', () => ask('Clear the Mission 4 power design and journal?', () => OI.store.resetPower()));
+    main.querySelector('#reset-m5').addEventListener('click', () => ask('Clear the Mission 5 plan and journal?', () => OI.store.resetEco()));
     main.querySelector('#reset-all').addEventListener('click', () => ask('Clear the team, all missions and the Island Log?', () => OI.store.resetAll()));
   }
 

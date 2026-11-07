@@ -376,3 +376,28 @@ tr.best td { font-weight: 700; background: var(--chip); }
 .tank.batt { border-radius: 6px; }
 .tank.batt i { background: var(--good); }
 @media (max-width: 560px) { .weather-row small { display: none; } }
+
+/* mission 5 */
+.web-wrap { overflow-x: auto; }
+.web { display: block; width: 100%; min-width: 520px; max-width: 760px; height: auto; font-family: var(--font-body); }
+.web-node { fill: var(--panel); stroke: var(--sea); stroke-width: 1.5; }
+.web-node.people { fill: var(--chip); stroke: var(--ink); }
+.web-label { font-size: 12px; fill: var(--ink); font-weight: 700; }
+.web-edge { stroke: var(--muted); stroke-width: 1.5; }
+.web-arrow { fill: var(--muted); }
+.brushes { display: flex; flex-wrap: wrap; gap: 6px; }
+.brush { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 8px; border: 2px solid var(--line); background: transparent; color: var(--ink); font: 700 0.9rem var(--font-body); cursor: pointer; }
+.brush.on { border-color: var(--ink); background: var(--chip); }
+.swatch { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 5px; background: var(--zone); color: #fff; font: 700 0.8rem var(--font-mono); text-shadow: 0 0 3px rgba(0,0,0,0.6); }
+.field-l { font-weight: 700; font-size: 0.95rem; }
+.minis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.mini { margin: 0; padding: 6px; border: 1px solid var(--line); border-radius: 8px; }
+.mini svg { display: block; width: 100%; height: auto; font-family: var(--font-mono); }
+.mini .pt { fill: var(--sea); stroke: var(--panel); stroke-width: 2; }
+.mini .ax-v { font-size: 12px; font-weight: 600; fill: var(--ink); }
+.mini .ax { font-size: 10px; fill: var(--muted); }
+.mini .ax-t { font-size: 12px; fill: var(--ink); font-weight: 600; }
+.mini .grid { stroke: var(--line); stroke-width: 1; }
+.mini .st-area { fill: var(--sea); opacity: 0.18; }
+.mini .st-line { fill: none; stroke: var(--sea); stroke-width: 2; }
+@media (max-width: 560px) { .minis { grid-template-columns: minmax(0, 1fr); } }
