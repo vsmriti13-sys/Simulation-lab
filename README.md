@@ -21,6 +21,12 @@ The simulations add what slides can't: changing variables, making decisions and 
 | 5 | **Protect the Ecosystem** | ✅ Playable | Observation activity (GooseChase) |
 | 6 | **The Volcano Wakes** | ✅ Playable | Orange volcano, volcano-safe building, AR |
 
+### Case Files (guided virtual labs)
+
+Shorter, guided investigations in a virtual-lab layout: a large interactive scene, a side panel with the case's stages and a Handbook, a glossary of tappable words, coach tips, read-aloud and a score saved on the device.
+
+**Case File #1: The Mystery Illness** (stages 1–3 playable): villagers fall ill after the storm. Learners read the clinic's message, interview 18 families on an illustrated outbreak map to find the pattern, collect water samples and test them in the virtual lab with a turbidity tube, pH strip, culture plate (with tap-to-count and the quarter method) and microscope. Hypotheses, the treatment plant and the case summary come next.
+
 ### Teacher Mode
 
 For any teacher, not only STEM: choose a subject (science, maths, geography, English and languages, history, art and design, music, citizenship, economics, computing), an age group (7–10, 11–14, 15+), the time available (one lesson, half a day, a week) and an optional learning goal. Teacher Mode suggests the best-fitting missions, each with a subject task, the product pupils make, a timed lesson structure and age adaptations, and the plan can be copied into a planning document.
@@ -54,6 +60,8 @@ js/store.js             saved progress and the Island Log
 js/map-view.js          the map (canvas)
 js/missions/*.js        one file per mission
 js/teacher.js           Teacher Mode: subject ideas for every mission
+js/cases/case-kit.js    the Case Files player (stages, handbook, glossary, coach tips, read-aloud)
+js/cases/illness.js     Case File #1: The Mystery Illness
 js/app.js               Mission Control hub, facilitator guide, routing
 ```
 

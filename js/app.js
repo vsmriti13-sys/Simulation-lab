@@ -72,6 +72,16 @@
         : `<p class="muted">Nothing recorded yet. When your team finishes Mission 1, its base site and discoveries are saved here and carried into the next missions.</p>`}
     </section>
 
+    <section class="case-promo" aria-labelledby="cases-h">
+      <h2 id="cases-h">Case Files</h2>
+      <div class="case-card">
+        <div><p class="eyebrow">Case File #1 · Guided virtual lab</p><h3>The Mystery Illness</h3>
+          <p>A week after the storm, villagers fall ill. As the team's Hydrologist, interview families on the outbreak map, collect water samples and test them in the virtual lab: turbidity tube, pH strip, culture plate and microscope.</p>
+          <p class="subjects">Science · Health · Maths · Literacy</p></div>
+        <a class="btn primary" href="#case1">Open the case</a>
+      </div>
+    </section>
+
     <section aria-labelledby="missions-h">
       <h2 id="missions-h">Missions</h2>
       <ol class="missions">
@@ -299,6 +309,7 @@
     else if (view === 'volcano') { current = OI.missions.volcano; current.mount(main); }
     else if (view === 'guide') { main.innerHTML = guide(); }
     else if (view === 'teacher') { OI.teacher.render(main); }
+    else if (view === 'case1') { current = OI.cases.illness; current.mount(main); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
     document.getElementById('team-chip').textContent = team ? 'Team: ' + team : '';
