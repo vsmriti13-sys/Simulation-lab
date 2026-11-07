@@ -17,7 +17,7 @@ The simulations add what slides can't: changing variables, making decisions and 
 | 1 | **Explore the Island** | ✅ Playable | Paper map, GooseChase observation walk, journal entries |
 | 2 | **The Water Crisis** | ✅ Playable | AquaQuest water filtration |
 | 3 | **Build to Survive** | ✅ Playable | Marshmallow earthquake towers, Tinkercad shelters |
-| 4 | Power the Island | In design | Lava lamp ("It's dark!") |
+| 4 | **Power the Island** | ✅ Playable | Lava lamp ("It's dark!") |
 | 5 | Protect the Ecosystem | In design | Observation activity |
 | 6 | The Volcano Wakes | In design | Orange volcano, volcano-safe building, AR |
 
@@ -42,6 +42,7 @@ js/storm.js             storm model and site scoring
 js/terrain-render.js    paints the realistic island map
 js/water-model.js       Mission 2 water model
 js/build-model.js       Mission 3 structure physics (sticks and joints)
+js/power-model.js       Mission 4 hour-by-hour energy model
 js/ui.js                shared interface pieces
 js/store.js             saved progress and the Island Log
 js/map-view.js          the map (canvas)

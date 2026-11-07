@@ -17,9 +17,9 @@
       subjects: ['Physics', 'Engineering', 'Maths', 'Art'],
       blurb: 'Build a shelter frame from sticks and marshmallow joints, test it on a shake table and in a wind tunnel, then build the real one.',
       physical: ['Marshmallow-and-stick earthquake towers', 'Tinkercad shelter design'] },
-    { id: 'power', n: 4, title: 'Power the Island', status: 'soon', day: 'Day 4',
+    { id: 'power', n: 4, title: 'Power the Island', status: 'open', day: 'Day 4',
       subjects: ['Physics', 'Maths', 'Technology', 'Economics'],
-      blurb: '"It\'s dark!" Balance solar panels, wind turbines and batteries through a day and a night.',
+      blurb: '"It\'s dark!" Audit the settlement\'s energy use, then keep the lights and the vaccine fridge on for 7 days with sun, wind, batteries or diesel.',
       physical: ['Lava lamp build'] },
     { id: 'ecosystem', n: 5, title: 'Protect the Ecosystem', status: 'soon', day: 'Day 4',
       subjects: ['Biology', 'Geography', 'Environmental science'],
@@ -33,7 +33,8 @@
 
   function hub() {
     const s = OI.store.get(), log = s.log.exploration, e = s.exploration, wlog = s.log.water;
-    const done = { explore: e.completed, water: s.water.completed, build: s.build.completed };
+    const done = { explore: e.completed, water: s.water.completed, build: s.build.completed, power: s.power.completed };
+    const plog = s.log.power;
     const blog = s.log.build;
     const started = e.phase !== 'briefing' || e.hoursUsed > 0;
     const finds = log ? log.discovered.map(id => W.feature(id)).filter(f => f && !f.hidden) : [];
@@ -59,6 +60,7 @@
           <div><span class="label">Storm test</span><strong class="mono">${log.score}/18</strong></div>
           <div><span class="label">Discoveries</span><strong class="mono">${finds.length}</strong><small>${finds.slice(0, 6).map(f => f.icon).join(' ')}</small></div>
           ${wlog ? `<div><span class="label">Water system</span><strong class="mono">${wlog.score}/15</strong><small>Safe water on ${wlog.daysSafe} of 30 days</small></div>` : ''}
+          ${plog ? `<div><span class="label">Power</span><strong class="mono">${plog.score}/15</strong><small>Lights on ${plog.lit} of ${plog.litOf} evening hours${plog.fuel ? ` · ${plog.fuel} L diesel` : ''}</small></div>` : ''}
           ${blog ? `<div><span class="label">Shelter</span><strong class="mono">${blog.score}/15</strong><small>Earthquake: ${blog.quake === 'stand' ? 'stood' : blog.quake === 'damage' ? 'damaged' : 'collapsed'} · storm: ${blog.storm === 'stand' ? 'stood' : blog.storm === 'damage' ? 'damaged' : 'collapsed'}</small></div>` : ''}
         </div>
         <p class="muted">The next missions will build on this base and on what your experts found.</p>`
@@ -87,6 +89,7 @@
         <button class="btn ghost" id="reset-m1">Reset Mission 1</button>
         <button class="btn ghost" id="reset-m2">Reset Mission 2</button>
         <button class="btn ghost" id="reset-m3">Reset Mission 3</button>
+        <button class="btn ghost" id="reset-m4">Reset Mission 4</button>
         <button class="btn ghost danger" id="reset-all">Reset everything</button>
       </div>
       <p id="reset-confirm" class="confirm" hidden></p>
@@ -161,6 +164,26 @@
         <li>Wind pushes from the east with force proportional to speed², more strongly higher up. Untied thatch roofs lift off above 90 km/h, untied tiles above 140 km/h.</li>
       </ul>
 
+      <h2>Mission 4: Power the Island (60–90 minutes)</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Stage</th><th>Time</th><th>What happens</th><th>Your role</th></tr></thead>
+        <tbody>
+          <tr><td>Briefing</td><td class="mono">5 min</td><td>"It's dark!" The clinic's vaccine fridge and the lights need power. Teams see their base's wind exposure from Mission 1.</td><td>Start in the dark, if the room allows.</td></tr>
+          <tr><td>Energy audit</td><td class="mono">15 min</td><td>Choose appliances (needs and wants) and LED or old-style bulbs; calculate W × h = Wh and kWh.</td><td>Maths focus: power vs energy, units.</td></tr>
+          <tr><td>Design and predict</td><td class="mono">15–20 min</td><td>Solar panels, wind turbines (at the base or on the hill), batteries and an optional diesel generator, within 150 credits.</td><td>Ask: "What happens at night? On a still, grey day?"</td></tr>
+          <tr><td>7-day test</td><td class="mono">5–10 min</td><td>An hour-by-hour chart of solar, wind, use and battery charge through sun, cloud, a storm and a still grey day.</td><td>Use the "What" questions.</td></tr>
+          <tr><td>Debrief</td><td class="mono">20 min</td><td>Make a lava lamp (oil, water, food colouring, effervescent tablet), explain it with density, and work out the lava lamp maths. Journal and 3-2-1.</td><td>Link to "It's dark!" and the lava lamp.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Mission 4 rules</h3>
+      <ul>
+        <li>Energy (Wh) = power (W) × time (h). The default settlement uses about 3.6 kWh a day; the vaccine fridge alone uses 1.44 kWh.</li>
+        <li>A 300 W panel follows the sun from 06:00 to 18:00 and makes about 1.5 kWh on a clear day. Thick cloud cuts output by up to 90%.</li>
+        <li>A 1 kW turbine starts at 3 m/s, reaches full power at 12 m/s (power rises with wind speed cubed) and shuts down above 25 m/s. Wind at the turbine = open-sea wind × site exposure.</li>
+        <li>Batteries hold 2.4 kWh each and lose 10% when charging. The generator burns 0.4 L of diesel per kWh; 1 L releases 2.7 kg of CO₂.</li>
+        <li>Weather for everyone: sunny Mon–Tue, cloudy and windy Wed, storm Thu, grey and still Fri, sunny Sat–Sun.</li>
+      </ul>
+
       <h2>The science model</h2>
       <p>The rules are deliberately simple and visible, so learners can reason with them and check the maths:</p>
       <ul>
@@ -225,6 +248,7 @@
     if (view === 'explore') { current = OI.missions.exploration; current.mount(main); }
     else if (view === 'water') { current = OI.missions.water; current.mount(main); }
     else if (view === 'build') { current = OI.missions.build; current.mount(main); }
+    else if (view === 'power') { current = OI.missions.power; current.mount(main); }
     else if (view === 'guide') { main.innerHTML = guide(); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
@@ -251,6 +275,7 @@
     main.querySelector('#reset-m1').addEventListener('click', () => ask('Clear the Mission 1 map, journal and base?', () => OI.store.resetExploration()));
     main.querySelector('#reset-m2').addEventListener('click', () => ask('Clear the Mission 2 water design and journal?', () => OI.store.resetWater()));
     main.querySelector('#reset-m3').addEventListener('click', () => ask('Clear the Mission 3 shelter design and journal?', () => OI.store.resetBuild()));
+    main.querySelector('#reset-m4').addEventListener('click', () => ask('Clear the Mission 4 power design and journal?', () => OI.store.resetPower()));
     main.querySelector('#reset-all').addEventListener('click', () => ask('Clear the team, all missions and the Island Log?', () => OI.store.resetAll()));
   }
 
