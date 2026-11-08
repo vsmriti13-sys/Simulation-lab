@@ -549,8 +549,11 @@ tr.best td { font-weight: 700; background: var(--chip); }
 .ph-swatch span { width: 34px; height: 24px; border-radius: 4px; background: var(--c); }
 .ph-swatch:disabled { opacity: 0.5; cursor: not-allowed; }
 .dish { background: radial-gradient(circle, #EEF3F1, #DCE6E2); max-height: 440px; }
-.colony { fill: #F6F1E1; stroke: #B79A55; stroke-width: 1.5; cursor: pointer; }
-.colony.marked { fill: #F2B630; stroke: #10262E; }
+.colony { cursor: pointer; }
+.colony .hit { fill: transparent; }
+.colony .dot { fill: #FFFDF5; stroke: #8C6A3A; stroke-width: 2; }
+.colony.marked .dot { fill: #F2B630; stroke: #10262E; }
+.colony .miss-ring { fill: none; stroke: #C2412D; stroke-width: 3; stroke-dasharray: 5 3; pointer-events: none; }
 .scope { width: 100%; max-width: 420px; height: auto; aspect-ratio: 1; justify-self: center; background: #10262E; border-radius: 50%; }
 .case-promo .case-card { display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 20px; background: #263A41; color: #F1F5F3; border-radius: var(--radius); }
 .case-promo .case-card > div { display: grid; gap: 8px; max-width: 70ch; }

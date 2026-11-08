@@ -96,9 +96,10 @@
   function rng(seed) { let s = seed; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
   function colonies(b) {
     const n = BOTTLES[b].ecoli, r = rng(b.length * 97 + n), out = [];
-    const place = quarter => { for (let k = 0; k < 400; k++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 140; const x = Math.cos(a) * d, y = Math.sin(a) * d; if (quarter === 'q' && !(x > 6 && y < -6)) continue; if (quarter === 'rest' && x > 0 && y < 0) continue; if (out.every(o => Math.hypot(o.x - x, o.y - y) > 11)) return { x, y }; } return { x: 0, y: 0 }; };
+    const gap = n > 40 ? 11 : 26;
+    const place = quarter => { for (let k = 0; k < 400; k++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 140; const x = Math.cos(a) * d, y = Math.sin(a) * d; if (quarter === 'q' && !(x > 6 && y < -6)) continue; if (quarter === 'rest' && x > 0 && y < 0) continue; if (out.every(o => Math.hypot(o.x - x, o.y - y) > gap)) return { x, y }; } return { x: 0, y: 0 }; };
     if (n > 40) { for (let i = 0; i < 40; i++) out.push(Object.assign(place('q'), { t: 8 + r() * 8, s: 3.5 + r() * 2.5 })); for (let i = 40; i < n; i++) out.push(Object.assign(place('rest'), { t: 8 + r() * 8, s: 3.5 + r() * 2.5 })); }
-    else for (let i = 0; i < n; i++) out.push(Object.assign(place('all'), { t: 8 + r() * 8, s: 4 + r() * 3 }));
+    else for (let i = 0; i < n; i++) out.push(Object.assign(place('all'), { t: 8 + r() * 8, s: 7 + r() * 3 }));
     return out;
   }
 
@@ -289,7 +290,8 @@
   function cultureTool(L) {
     const b = L.bottle, c = L.culture[b], cols = colonies(b), n = cols.length;
     const many = n > 40;
-    const grown = cols.map((o, i) => { const g = Math.max(0, Math.min(1, (c.hours - o.t) / 6)); return g > 0 ? `<circle cx="${o.x}" cy="${o.y}" r="${(o.s * g).toFixed(1)}" class="colony ${c.marked.includes(i) ? 'marked' : ''}" data-col="${i}"/>` : ''; }).join('');
+    const grown = cols.map((o, i) => { const g = Math.max(0, Math.min(1, (c.hours - o.t) / 6)); if (g <= 0) return ''; const on = c.marked.includes(i), miss = c.showMissed && !on;
+      return `<g class="colony ${on ? 'marked' : ''} ${miss ? 'missed' : ''}" data-col="${i}"><circle cx="${o.x}" cy="${o.y}" r="${many ? 9 : 17}" class="hit"/><circle cx="${o.x}" cy="${o.y}" r="${(o.s * g).toFixed(1)}" class="dot"/>${miss ? `<circle cx="${o.x}" cy="${o.y}" r="${o.s + 7}" class="miss-ring"/>` : ''}</g>`; }).join('');
     return `<div class="tool culture">
       <svg viewBox="-200 -200 400 400" class="tool-svg dish" role="img" aria-label="Culture plate after ${c.hours} hours">
         <circle r="185" fill="#E9E4D6" stroke="#4A636C" stroke-width="4"/><circle r="165" fill="${c.plated ? '#F3DFA2' : '#F7EBC4'}" stroke="#C9B27C" stroke-width="2"/>
@@ -305,7 +307,7 @@
               : n === 0 ? '<div class="actions"><button type="button" class="btn small primary" id="none-grew">No colonies grew</button></div>'
               : many ? (c.quarter ? `<label class="field"><span>Count the colonies in the highlighted quarter (${c.marked.length} tapped). Then estimate the whole plate.</span><input id="estimate" inputmode="numeric" placeholder="Whole plate"></label><div class="actions"><button type="button" class="btn small primary" id="est-check">Check estimate</button><button type="button" class="btn small ghost" id="count-for-me">Count the quarter for me</button></div>`
                 : '<p>Too many colonies to count one by one!</p><div class="actions"><button type="button" class="btn small primary" id="quarter">Use the quarter method</button></div>')
-              : `<p>Tap each colony to count it: <strong class="mono">${c.marked.length} / ?</strong></p><div class="actions"><button type="button" class="btn small primary" id="done-count">I have counted them all</button></div>`}`}
+              : `<p>The small white spots on the plate are the colonies. Tap each one to count it (it turns yellow). Colonies tapped: <strong class="mono">${c.marked.length}</strong></p><div class="actions"><button type="button" class="btn small primary" id="done-count">I have counted them all</button>${c.misses ? '<button type="button" class="btn small ghost" id="show-missed">Show me the ones I missed</button>' : ''}</div>`}`}
         <p class="calc-fb" id="cul-fb" aria-live="polite"></p>
       </div></div>`;
   }
@@ -441,9 +443,10 @@
       const none = el.querySelector('#none-grew'); if (none) none.addEventListener('click', () => { record('culture', 0); api.rerender(); });
       const dc = el.querySelector('#done-count'); if (dc) dc.addEventListener('click', () => {
         const fb = el.querySelector('#cul-fb');
-        if (c.marked.length === cols.length) { record('culture', cols.length); api.rerender(); }
-        else { fb.className = 'calc-fb no'; fb.textContent = `Not yet: some colonies have not been tapped (${c.marked.length} so far). Look carefully around the edge.`; }
+        if (c.marked.length === cols.length) { c.showMissed = false; record('culture', cols.length); api.rerender(); }
+        else { const first = !c.misses; c.misses = (c.misses || 0) + 1; api.save(); if (first) api.rerender(); const f = el.querySelector('#cul-fb'); f.className = 'calc-fb no'; f.textContent = `Not yet: ${c.marked.length} tapped so far, and some colonies have not been tapped. Look carefully around the edge, or tap "Show me the ones I missed".`; }
       });
+      const sm = el.querySelector('#show-missed'); if (sm) sm.addEventListener('click', () => { c.showMissed = true; api.save(); api.rerender(); });
       const qb = el.querySelector('#quarter'); if (qb) qb.addEventListener('click', () => { c.quarter = true; api.save(); api.rerender(); });
       const cfm = el.querySelector('#count-for-me'); if (cfm) cfm.addEventListener('click', () => { c.marked = cols.map((o, i) => (o.x > 0 && o.y < 0 ? i : -1)).filter(i => i >= 0); api.save(); api.rerender(); });
       const ec = el.querySelector('#est-check'); if (ec) ec.addEventListener('click', () => {
