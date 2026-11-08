@@ -674,3 +674,12 @@ tr.best td { font-weight: 700; background: var(--chip); }
 .web-arrow-line.mine { stroke: #10262E; }
 .web-arrow-line.wrong { stroke: #C2412D; }
 @media (prefers-reduced-motion: reduce) { .reef .fish { animation: none; } }
+
+/* Case File #4: the clinic fridge */
+.storm-chart { display: block; width: 100%; height: auto; }
+.forecast { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.forecast > div { display: grid; justify-items: center; gap: 2px; padding: 8px 6px; border: 2px solid var(--line); border-radius: 8px; background: var(--panel); text-align: center; }
+.forecast span { font-size: 1.5rem; }
+.forecast small { color: var(--muted); font-size: 0.8rem; }
+.audit-t input.wh-in { width: 7em; }
+.audit-t input.wh-in.bad { border-color: var(--bad); }

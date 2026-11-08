@@ -115,7 +115,9 @@
     { id: 'case2', key: 'case2', n: 2, title: 'The Fallen Hall', role: 'Engineer', subjects: 'Physics · Engineering · Maths',
       blurb: 'An earthquake brings down the school hall, but the clinic next door stands. Inspect the site, push, weigh and shake in the force lab, run fair tests and design a safe new hall.', max: 26 },
     { id: 'case3', key: 'case3', n: 3, title: 'Where Did the Fish Go?', role: 'Biologist', subjects: 'Biology · Geography · Maths',
-      blurb: 'The fishers\' catch has fallen from 30 to 12 kg a day. Survey three reef sites, test the water, build the food web and plan a 10-year reef rescue.', max: 26 }
+      blurb: 'The fishers\' catch has fallen from 30 to 12 kg a day. Survey three reef sites, test the water, build the food web and plan a 10-year reef rescue.', max: 26 },
+    { id: 'case4', key: 'case4', n: 4, title: 'The Night the Fridge Went Warm', role: 'Meteorologist', subjects: 'Physics · Maths · Weather · Design',
+      blurb: 'The clinic\'s solar-powered vaccine fridge loses power every night after midnight. Audit the energy, test panels and batteries, balance the night budget and plan for a two-day storm.', max: 28 }
   ];
   function caseCards(s) {
     return `<div class="case-cards">${CASES.map(c => `<div class="case-card">
@@ -330,6 +332,7 @@
     else if (view === 'case1') { current = OI.cases.illness; current.mount(main); }
     else if (view === 'case2') { current = OI.cases.hall; current.mount(main); }
     else if (view === 'case3') { current = OI.cases.reef; current.mount(main); }
+    else if (view === 'case4') { current = OI.cases.fridge; current.mount(main); }
     else if (view === 'cases') { main.innerHTML = casesPage(); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
