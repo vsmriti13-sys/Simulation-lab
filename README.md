@@ -54,6 +54,15 @@ The case uses a transparent engineering check (force = mass × acceleration × g
 6. Reef rescue: boats, marine reserve, parrotfish ban, compost and river trees; run 10 years against the goal (coral ≥ 50%, catch ≥ 20 kg) while keeping fishers' jobs in mind.
 7. Case summary: report, recommendations and a message to the fishers.
 
+**Case File #4: The Night the Fridge Went Warm** (all 7 stages playable): the clinic's solar-powered vaccine fridge loses power every night after midnight. Learners are the Meteorologist.
+1. Introduction: Nurse Amara's message and a three-night fridge temperature chart.
+2. Energy audit: inspect a cutaway of the clinic at night; fill in watts × hours = watt-hours for six appliances and find four clues (torn seal, dusty panels, tree shade, old battery).
+3. Energy lab: a solar panel meter (sun/cloud, clean/dusty, shade, one change at a time) and a fair battery test (100 W lamp × hours = capacity).
+4. Night budget: add up the energy used at night (2700 Wh) and move a night clock to see the battery run out at about 1 am.
+5. Evidence: sort cards into using too much, making too little, storing too little, or not the cause.
+6. Storm plan: choose fixes within 70 credits and run 72 hours of a forecast with two cloudy, windy days; the fridge must never lose power.
+7. Case summary: report, recommendations and a message to the nurse.
+
 ### Teacher Mode
 
 For any teacher, not only STEM: choose a subject (science, maths, geography, English and languages, history, art and design, music, citizenship, economics, computing), an age group (7–10, 11–14, 15+), the time available (one lesson, half a day, a week) and an optional learning goal. Teacher Mode suggests the best-fitting missions, each with a subject task, the product pupils make, a timed lesson structure and age adaptations, and the plan can be copied into a planning document.
@@ -91,6 +100,7 @@ js/cases/case-kit.js    the Case Files player (stages, handbook, glossary, coach
 js/cases/illness.js     Case File #1: The Mystery Illness
 js/cases/hall.js        Case File #2: The Fallen Hall
 js/cases/reef.js        Case File #3: Where Did the Fish Go?
+js/cases/fridge.js      Case File #4: The Night the Fridge Went Warm
 js/app.js               Mission Control hub, facilitator guide, routing
 ```
 

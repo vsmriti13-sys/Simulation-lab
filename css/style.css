@@ -683,3 +683,5 @@ tr.best td { font-weight: 700; background: var(--chip); }
 .forecast small { color: var(--muted); font-size: 0.8rem; }
 .audit-t input.wh-in { width: 7em; }
 .audit-t input.wh-in.bad { border-color: var(--bad); }
+.storm-chart .st-line { fill: none; stroke: var(--sea); stroke-width: 2.5; stroke-linejoin: round; }
+.storm-chart .pt { fill: var(--sea); }

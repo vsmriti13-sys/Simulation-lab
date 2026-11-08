@@ -41,9 +41,8 @@
     'meteorologist': 'A scientist who studies the weather: sun, cloud, wind and rain.',
     'vaccine': 'A medicine that trains the body to fight a disease. Most vaccines must be kept between 2 °C and 8 °C.',
     'cold chain': 'Keeping vaccines cold all the way from the factory to the patient. One warm night can spoil them.',
-    'power': 'How fast something uses (or makes) energy, measured in watts (W).',
+    'power': 'How fast something uses (or makes) energy, measured in watts (W). A 40 W bulb uses energy twice as fast as a 20 W bulb.',
     'energy': 'The ability to make things happen. Electrical energy is measured in watt-hours (Wh).',
-    'watt': 'The unit of power. A 40 W bulb uses energy twice as fast as a 20 W bulb.',
     'watt-hours': 'The unit of energy: power × time. A 40 W bulb left on for 10 hours uses 400 Wh.',
     'solar panel': 'A panel that turns sunlight into electricity. Less light means less power.',
     'battery': 'A store of electrical energy, charged in the day and used at night.',
@@ -363,7 +362,7 @@
 
   // ---------- stage 6: design for the storm ----------
   function stormChart(rows, upto, key, title, max, goal, goodLow) {
-    const W = 640, H = 170, L = 40, R = 12, T = 26, B = 24, X = i => L + (i / 72) * (W - L - R), Y = v => H - B - (Math.min(v, max) / max) * (H - B - T);
+    const W = 640, H = 170, L = 52, R = 12, T = 26, B = 24, X = i => L + (i / 72) * (W - L - R), Y = v => H - B - (Math.min(v, max) / max) * (H - B - T);
     const shown = rows.slice(0, upto), last = shown[shown.length - 1];
     const path = shown.map((r, k) => `${k ? 'L' : 'M'}${X(r.i + 1)},${Y(r[key])}`).join(' ');
     return `<svg viewBox="0 0 ${W} ${H}" class="storm-chart" role="img" aria-label="${title}">
@@ -371,7 +370,7 @@
       ${[0, 1, 2].map(n => `<rect x="${X(n * 24)}" y="${T}" width="${X(12) - X(0)}" height="${H - B - T}" fill="#1B2C4A" opacity="0.08"/>`).join('')}
       ${[0, max / 2, max].map(v => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" class="grid"/><text x="${L - 5}" y="${Y(v) + 4}" class="ax" text-anchor="end">${v}</text>`).join('')}
       ${goal != null ? `<line x1="${L}" x2="${W - R}" y1="${Y(goal)}" y2="${Y(goal)}" stroke="#C2412D" stroke-dasharray="5 4"/><text x="${L + 4}" y="${Y(goal) - 4}" class="ax">${goodLow ? 'limit ' : ''}${goal}</text>` : ''}
-      ${shown.length ? `<path d="${path}" class="st-line"/>` : ''}
+      ${shown.length ? `<path d="${path}" class="st-line" fill="none"/>` : ''}
       ${shown.filter(r => !r.on).map(r => `<rect x="${X(r.i)}" y="${H - B - 6}" width="${X(1) - X(0)}" height="6" fill="#C2412D"/>`).join('')}
       ${last ? `<circle cx="${X(last.i + 1)}" cy="${Y(last[key])}" r="4" class="pt"/>` : ''}
       ${[0, 24, 48, 72].map(i => `<text x="${X(i)}" y="${H - 6}" class="ax" text-anchor="${i === 0 ? 'start' : i === 72 ? 'end' : 'middle'}">${['18:00 tonight', 'day 1', 'day 2', 'day 3'][i / 24]}</text>`).join('')}
