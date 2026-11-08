@@ -45,6 +45,15 @@ Shorter, guided investigations in a virtual-lab layout: a large interactive scen
 
 The case uses a transparent engineering check (force = mass × acceleration × ground effect, compared with bracing × joints × foundations), so learners can verify every result.
 
+**Case File #3: Where Did the Fish Go?** (all 7 stages playable): the fishers' catch has fallen from 30 to 12 kg a day and the reef is turning green. Learners are the Biologist.
+1. Introduction: the fishers' message and a two-year catch chart.
+2. Reef survey: three dive sites; count coral and algae in a quadrat (% cover = squares × 4) and tap to count the parrotfish.
+3. Reef lab: nitrate colour test at each site and a grazer tank (parrotfish × nutrients, 30 days).
+4. Food web: draw the arrows of the reef food web, then choose a hypothesis (a trophic cascade with two causes).
+5. Evidence: sort cards into overfishing of grazers, fertiliser runoff, and ruling out sharks and warm water.
+6. Reef rescue: boats, marine reserve, parrotfish ban, compost and river trees; run 10 years against the goal (coral ≥ 50%, catch ≥ 20 kg) while keeping fishers' jobs in mind.
+7. Case summary: report, recommendations and a message to the fishers.
+
 ### Teacher Mode
 
 For any teacher, not only STEM: choose a subject (science, maths, geography, English and languages, history, art and design, music, citizenship, economics, computing), an age group (7–10, 11–14, 15+), the time available (one lesson, half a day, a week) and an optional learning goal. Teacher Mode suggests the best-fitting missions, each with a subject task, the product pupils make, a timed lesson structure and age adaptations, and the plan can be copied into a planning document.
@@ -81,6 +90,7 @@ js/teacher.js           Teacher Mode: subject ideas for every mission
 js/cases/case-kit.js    the Case Files player (stages, handbook, glossary, coach tips, read-aloud)
 js/cases/illness.js     Case File #1: The Mystery Illness
 js/cases/hall.js        Case File #2: The Fallen Hall
+js/cases/reef.js        Case File #3: Where Did the Fish Go?
 js/app.js               Mission Control hub, facilitator guide, routing
 ```
 

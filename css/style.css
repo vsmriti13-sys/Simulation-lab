@@ -647,3 +647,27 @@ tr.best td { font-weight: 700; background: var(--chip); }
 .calc-box { padding: 10px 12px; background: var(--ink); color: var(--paper); border-radius: 8px; font-size: 0.85rem; line-height: 1.6; }
 @media (max-width: 760px) { .columns.four { grid-template-columns: repeat(2, minmax(0, 1fr)); } .trays { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .site .spot-ring { animation: none; } }
+
+/* Case File #3: the reef */
+.reef, .foodweb, .tank-svg { display: block; width: 100%; height: auto; }
+.reef-frame { margin: 10px 0; }
+.reef .fish { animation: bob 3s ease-in-out infinite; }
+.reef .fish.parrot { cursor: pointer; }
+.reef .fish.parrot:hover ellipse { stroke: #fff; }
+@keyframes bob { 50% { translate: 0 6px; } }
+.quadrat { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; width: min(100%, 300px); aspect-ratio: 1; padding: 6px; background: #fff; border: 3px dashed #4A636C; border-radius: 6px; }
+.qc { border-radius: 3px; }
+.qc.coral { background: radial-gradient(circle at 35% 35%, #F7A1B9, #E86A8E 60%, #C24E74); }
+.qc.algae { background: repeating-linear-gradient(60deg, #6E9A3A 0 6px, #557C2A 6px 10px); }
+.qc.sand { background: #E8DCB8; }
+.foodweb .web-node2 { cursor: pointer; }
+.foodweb .web-node2 rect { fill: #fff; stroke: #4A636C; stroke-width: 2.5; }
+.foodweb .web-node2 text { font: 700 16px var(--font-body); fill: #10262E; pointer-events: none; }
+.foodweb .web-node2:hover rect, .foodweb .web-node2:focus rect { stroke: #E8613C; }
+.foodweb .web-node2.from rect { fill: #FCE8B2; stroke: #E8613C; stroke-width: 4; }
+.web-arrow-line { stroke-width: 4; cursor: pointer; }
+.web-arrow-line .hit { stroke: transparent; stroke-width: 22; }
+.web-arrow-line.given { stroke: #9AAAB0; stroke-dasharray: 7 5; cursor: default; }
+.web-arrow-line.mine { stroke: #10262E; }
+.web-arrow-line.wrong { stroke: #C2412D; }
+@media (prefers-reduced-motion: reduce) { .reef .fish { animation: none; } }
