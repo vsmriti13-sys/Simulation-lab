@@ -188,7 +188,7 @@
         ${sp ? `<article class="interview"><h3><span aria-hidden="true">${sp.icon}</span> ${esc(sp.title)}</h3><p data-read>${api.gloss(sp.text)}</p></article>` : `<p class="muted" data-read>Tap a magnifying glass to inspect that part of the site. Compare the hall with the buildings that survived.</p>`}
         <div class="table-wrap"><table class="tally-t"><caption>Engineer's notebook</caption><tbody>${SPOTS.filter(x => st.found[x.id]).map(x => `<tr><td><span aria-hidden="true">${x.icon}</span> ${esc(x.title)}</td><td>${esc(x.text)}</td></tr>`).join('') || '<tr><td class="muted">No findings yet.</td></tr>'}</tbody></table></div>
       </div></div>
-      <div class="stage-tasks"><h2>Compare the buildings</h2>${n >= 8 ? api.question(q) + (api.answered(['s1']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Go to the force lab</button></div>' : '') : `<p class="muted">Inspect at least 8 places (${8 - n} more).</p>`}</div>`;
+      <div class="stage-tasks"><h2>Compare the buildings</h2>${n >= 8 || api.preview ? api.question(q) + (api.answered(['s1']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Go to the force lab</button></div>' : '') : `<p class="muted">Inspect at least 8 places (${8 - n} more).</p>`}</div>`;
     el.querySelectorAll('[data-spot]').forEach(g => { const pick = () => { st.sel = g.dataset.spot; st.found[st.sel] = true; api.save(); if (Object.keys(st.found).length >= 8) api.stepDone('inspect'); api.rerender(); }; g.addEventListener('click', pick); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }); });
     api.bindQuestions([q], () => { api.stepDone('compare'); api.complete('site'); });
     const nx = el.querySelector('#next'); if (nx) nx.addEventListener('click', () => api.go('lab'));
@@ -250,7 +250,7 @@
         <tr><th>Earthquake force on the roof</th>${['thatch', 'metal', 'tiles'].map(k => `<td>${ROOF[k].name}: <strong class="mono">${L.results.roof[k] != null ? L.results.roof[k].toLocaleString('en-GB') + ' N' : '—'}</strong></td>`).join('')}</tr>
         <tr><th>Ground shaking</th>${Object.entries(GROUND).map(([k, x]) => `<td>${x.name}: <strong class="mono">${L.results.ground.done ? (7 * x.amp).toFixed(1) + ' cm' : '—'}</strong></td>`).join('')}</tr>
       </tbody></table></div></div>
-      <div class="stage-tasks"><h2>What did you find?</h2>${done ? qs.map(q => api.question(q)).join('') + (api.answered(['f1', 'f2', 'f3']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Next: why did the hall fall?</button></div>' : '') : '<p class="note">Finish all 7 measurements to unlock the questions. Tap <strong>Next test</strong>.</p>'}</div>`;
+      <div class="stage-tasks"><h2>What did you find?</h2>${done || api.preview ? qs.map(q => api.question(q)).join('') + (api.answered(['f1', 'f2', 'f3']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Next: why did the hall fall?</button></div>' : '') : '<p class="note">Finish all 7 measurements to unlock the questions. Tap <strong>Next test</strong>.</p>'}</div>`;
     el.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => { L.tool = b.dataset.tool; api.save(); api.rerender(); }));
     const nt = el.querySelector('#next-test'); if (nt) nt.addEventListener('click', () => { const [tl, v] = todo[0]; L.tool = tl; if (tl === 'push') L.push = { frame: v, force: 0 }; if (tl === 'roof') L.roof = v; api.save(); api.rerender(); el.querySelector('.bench').scrollIntoView({ block: 'start', behavior: 'smooth' }); });
     if (L.tool === 'push') {
@@ -294,7 +294,7 @@
       <div class="columns four">${Object.entries(BINS).map(([k, t]) => `<div class="ev-col" data-col="${k}" role="button" tabindex="0"><h3>${t}</h3>${cards.filter(c => st.place[c.id] === k).map(c => `<button type="button" class="ev-card placed ${st.wrong && st.wrong.includes(c.id) ? 'wrong' : ''}" data-back="${c.id}"><span aria-hidden="true">${c.icon}</span>${esc(c.text)}</button>`).join('')}</div>`).join('')}</div>
       <div class="actions"><button type="button" class="btn primary" id="check-board" ${all && !api.answered(['h1a']) ? '' : 'disabled'}>Check my sorting</button></div>
       <p class="calc-fb ${api.answered(['h1a']) ? 'ok' : ''}" id="board-fb" aria-live="polite">${api.answered(['h1a']) ? 'Correct. Five pieces of evidence point to three different causes.' : ''}</p></div>
-      <div class="stage-tasks">${api.answered(['h1a']) ? api.question(q) : ''}${api.answered(['h1a', 'h1b']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Test it fairly</button></div>' : ''}</div>`;
+      <div class="stage-tasks">${api.answered(['h1a']) || api.preview ? api.question(q) : ''}${api.answered(['h1a', 'h1b']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Test it fairly</button></div>' : ''}</div>`;
     el.querySelectorAll('[data-ev]').forEach(b => b.addEventListener('click', () => { st.pick = st.pick === b.dataset.ev ? null : b.dataset.ev; api.save(); api.rerender(); }));
     el.querySelectorAll('[data-col]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-back]') || !st.pick) return; st.place[st.pick] = c.dataset.col; st.pick = null; st.wrong = null; api.save(); api.rerender(); }));
     el.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => { if (api.answered(['h1a'])) return; delete st.place[b.dataset.back]; st.wrong = null; api.save(); api.rerender(); }));
@@ -337,7 +337,7 @@
       <div class="table-wrap"><table class="tally-t"><caption>Fair test results</caption><thead><tr><th>Test</th><th>Force (kN)</th><th>Strength (kN)</th><th>Force ÷ strength</th><th>Result</th></tr></thead><tbody>
         ${TESTS.filter(x => st.ran[x.id]).map(x => { const r = check(x.d); return `<tr><td>${esc(x.label)}</td><td class="mono">${r.force}</td><td class="mono">${r.strength}</td><td class="mono">${r.ratio}</td><td><span class="pill ${r.outcome}">${r.outcome}</span></td></tr>`; }).join('') || '<tr><td colspan="5" class="muted">No tests yet.</td></tr>'}
       </tbody></table></div>
-      <div class="stage-tasks">${ready ? qs.map((q, i) => (i === 0 || api.answered([qs[i - 1].id])) ? api.question(q) : '').join('') + (api.answered(['h2a', 'h2b', 'h2c']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Design the new hall</button></div>' : '') : `<p class="note">Run the first four tests: the hall as it was, then change only the braces, only the roof, only the ground (${needed.filter(id => !st.ran[id]).length} to go).</p>`}</div>`;
+      <div class="stage-tasks">${ready || api.preview ? qs.map((q, i) => (i === 0 || api.answered([qs[i - 1].id])) ? api.question(q) : '').join('') + (api.answered(['h2a', 'h2b', 'h2c']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Design the new hall</button></div>' : '') : `<p class="note">Run the first four tests: the hall as it was, then change only the braces, only the roof, only the ground (${needed.filter(id => !st.ran[id]).length} to go).</p>`}</div>`;
     el.querySelectorAll('[data-test]').forEach(b => b.addEventListener('click', () => { st.cur = b.dataset.test; api.save(); api.rerender(); }));
     el.querySelector('#run').addEventListener('click', () => {
       const btn = el.querySelector('#run'); btn.disabled = true;
@@ -377,7 +377,7 @@
           ${over ? '<p class="note">Over budget. Remove something.</p>' : ''}
           ${d.last ? `<div class="gauges"><div class="${d.last.q === 'stands' ? '' : 'bad'}"><span>Magnitude 7 earthquake</span><b>${d.last.q} (${d.last.qr})</b></div><div class="${d.last.w ? '' : 'bad'}"><span>130 km/h storm</span><b>${d.last.w ? 'stands' : d.last.up ? 'roof blown off' : 'damaged'}</b></div></div>` : ''}
         </div></div>
-      <div class="stage-tasks">${api.answered(['d1']) ? api.question(qd) : ''}${api.answered(['d1', 'd2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Write the case summary</button></div>' : ''}</div>`;
+      <div class="stage-tasks">${api.answered(['d1']) || api.preview ? api.question(qd) : ''}${api.answered(['d1', 'd2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Write the case summary</button></div>' : ''}</div>`;
     el.querySelectorAll('input[name=brace], input[name=roof], input[name=ground]').forEach(r => r.addEventListener('change', () => { d[r.name] = r.value; d.last = null; api.save(); api.rerender(); }));
     ['bolts', 'footings', 'straps'].forEach(id => el.querySelector('#' + id).addEventListener('change', e => { d[id] = e.target.checked; d.last = null; api.save(); api.rerender(); }));
     el.querySelector('#run').addEventListener('click', () => {

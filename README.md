@@ -63,6 +63,8 @@ The case uses a transparent engineering check (force = mass × acceleration × g
 6. Storm plan: choose fixes within 70 credits and run 72 hours of a forecast with two cloudy, windy days; the fridge must never lose power.
 7. Case summary: report, recommendations and a message to the nurse.
 
+**Teacher preview.** A *Teacher preview* switch on the Case Files page (and in every case's header) opens every stage of every case at once and unlocks the questions without finishing the tests, so teachers can look around quickly. A banner shows while it is on; switch it off before learners use the device.
+
 ### Teacher Mode
 
 For any teacher, not only STEM: choose a subject (science, maths, geography, English and languages, history, art and design, music, citizenship, economics, computing), an age group (7–10, 11–14, 15+), the time available (one lesson, half a day, a week) and an optional learning goal. Teacher Mode suggests the best-fitting missions, each with a subject task, the product pupils make, a timed lesson structure and age adaptations, and the plan can be copied into a planning document.

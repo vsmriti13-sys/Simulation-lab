@@ -187,7 +187,7 @@
       <div class="table-wrap"><table class="tally-t notebook"><caption>Survey notebook</caption><thead><tr><th>Site</th><th>Coral cover</th><th>Algae cover</th><th>Parrotfish</th></tr></thead><tbody>
         ${Object.entries(SITES).map(([k, s]) => { const r = st.results[k] || {}; return `<tr class="${site === k ? 'cur' : ''}"><td>${esc(s.short)}</td><td class="mono">${r.coral != null ? r.coral * 4 + '%' : '—'}</td><td class="mono">${r.algae != null ? r.algae * 4 + '%' : '—'}</td><td class="mono">${r.parrot != null ? r.parrot : '—'}</td></tr>`; }).join('')}
       </tbody></table></div></div>
-      <div class="stage-tasks"><h2>Compare the sites</h2>${todo.length ? '<p class="note">Finish the quadrat and parrotfish counts at all three sites to unlock the question. Tap <strong>Next count</strong>.</p>' : api.question(q) + (api.answered(['s1']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Go to the reef lab</button></div>' : '')}</div>`;
+      <div class="stage-tasks"><h2>Compare the sites</h2>${todo.length && !api.preview ? '<p class="note">Finish the quadrat and parrotfish counts at all three sites to unlock the question. Tap <strong>Next count</strong>.</p>' : api.question(q) + (api.answered(['s1']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Go to the reef lab</button></div>' : '')}</div>`;
     el.querySelectorAll('[data-site]').forEach(b => b.addEventListener('click', () => { st.site = b.dataset.site; api.save(); api.rerender(); }));
     el.querySelectorAll('input[name=mode]').forEach(r => r.addEventListener('change', () => { st.mode = r.value; api.save(); api.rerender(); }));
     const nt = el.querySelector('#next-test'); if (nt) nt.addEventListener('click', () => { const [s, m] = todo[0]; st.site = s; st.mode = m; api.save(); api.rerender(); el.querySelector('.bench').scrollIntoView({ block: 'start', behavior: 'smooth' }); });
@@ -248,7 +248,7 @@
         <tr><th>Nitrate (mg/L)</th>${Object.entries(SITES).map(([k, s]) => `<td>${esc(s.short)}: <strong class="mono">${L.results.nitrate[k] != null ? L.results.nitrate[k] : '—'}</strong></td>`).join('')}<td></td></tr>
         <tr><th>Algae after 30 days</th>${RUNS.map(([f, n]) => `<td>${f} fish, ${n ? 'high' : 'low'} nutrients: <strong class="mono">${L.results.tank[f + '-' + n] != null ? L.results.tank[f + '-' + n] + '%' : '—'}</strong></td>`).join('')}</tr>
       </tbody></table></div></div>
-      <div class="stage-tasks"><h2>What did you find?</h2>${done ? qs.map(q => api.question(q)).join('') + (api.answered(['l1', 'l2', 'l3']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Build the food web</button></div>' : '') : '<p class="note">Finish all 7 tests to unlock the questions. Tap <strong>Next test</strong>.</p>'}</div>`;
+      <div class="stage-tasks"><h2>What did you find?</h2>${done || api.preview ? qs.map(q => api.question(q)).join('') + (api.answered(['l1', 'l2', 'l3']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Build the food web</button></div>' : '') : '<p class="note">Finish all 7 tests to unlock the questions. Tap <strong>Next test</strong>.</p>'}</div>`;
     el.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => { L.tool = b.dataset.tool; api.save(); api.rerender(); }));
     const nt = el.querySelector('#next-test'); if (nt) nt.addEventListener('click', () => { const [tl, v] = todo[0]; L.tool = tl; if (tl === 'nitrate') { L.site = v; L.dipped = null; } else { const [f, n] = v.split('-').map(Number); L.fish = f; L.nut = n; L.ran = null; } api.save(); api.rerender(); el.querySelector('.bench').scrollIntoView({ block: 'start', behavior: 'smooth' }); });
     if (L.tool === 'nitrate') {
@@ -301,7 +301,7 @@
         <div class="scene-side"><p class="mono">${st.arrows.length} arrows drawn · ${WANT.length} needed</p>
           ${st.from ? `<p class="note">${esc(NODES[st.from][0])} is eaten by… tap the animal that eats it.</p>` : '<p class="muted">Tap an arrow to remove it.</p>'}
           ${done ? '<p class="calc-fb ok">Your food web is correct!</p>' : `<div class="actions"><button type="button" class="btn primary" id="check-web" ${st.arrows.length ? '' : 'disabled'}>Check my food web</button><button type="button" class="btn ghost" id="clear-web">Clear</button></div><p class="calc-fb" id="web-fb" aria-live="polite"></p>`}</div></div>
-      <div class="stage-tasks">${done ? qs.map((q, i) => (i === 0 || api.answered([qs[i - 1].id])) ? api.question(q) : '').join('') : ''}${api.answered(['w1', 'w2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Test the hypothesis</button></div>' : ''}</div>`;
+      <div class="stage-tasks">${done || api.preview ? qs.map((q, i) => (i === 0 || api.answered([qs[i - 1].id])) ? api.question(q) : '').join('') : ''}${api.answered(['w1', 'w2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Test the hypothesis</button></div>' : ''}</div>`;
     el.querySelectorAll('[data-node]').forEach(g => { const tap = () => {
       if (done) return; const id = g.dataset.node;
       if (!st.from) st.from = id; else if (st.from === id) st.from = null;
@@ -339,7 +339,7 @@
       <div class="columns">${Object.entries(ECOLS).map(([k, t]) => `<div class="ev-col" data-col="${k}" role="button" tabindex="0"><h3>${t}</h3>${CARDS.filter(c => st.place[c.id] === k).map(c => `<button type="button" class="ev-card placed ${st.wrong && st.wrong.includes(c.id) ? 'wrong' : ''}" data-back="${c.id}"><span aria-hidden="true">${c.icon}</span>${esc(c.text)}</button>`).join('')}</div>`).join('')}</div>
       <div class="actions"><button type="button" class="btn primary" id="check-board" ${all && !api.answered(['e1']) ? '' : 'disabled'}>Check my sorting</button></div>
       <p class="calc-fb ${api.answered(['e1']) ? 'ok' : ''}" id="board-fb" aria-live="polite">${api.answered(['e1']) ? 'Correct. Two causes, and the sharks and the temperature are ruled out.' : ''}</p></div>
-      <div class="stage-tasks">${api.answered(['e1']) ? api.question(q) : ''}${api.answered(['e1', 'e2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Plan the reef rescue</button></div>' : ''}</div>`;
+      <div class="stage-tasks">${api.answered(['e1']) || api.preview ? api.question(q) : ''}${api.answered(['e1', 'e2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Plan the reef rescue</button></div>' : ''}</div>`;
     el.querySelectorAll('[data-ev]').forEach(b => b.addEventListener('click', () => { st.pick = st.pick === b.dataset.ev ? null : b.dataset.ev; api.save(); api.rerender(); }));
     el.querySelectorAll('[data-col]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-back]') || !st.pick) return; st.place[st.pick] = c.dataset.col; st.pick = null; st.wrong = null; api.save(); api.rerender(); }));
     el.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => { if (api.answered(['e1'])) return; delete st.place[b.dataset.back]; st.wrong = null; api.save(); api.rerender(); }));
@@ -386,7 +386,7 @@
           <div class="actions"><button type="button" class="btn primary" id="run">Run 10 years</button></div>
           ${shown === 10 ? `<div class="gauges"><div class="${last.coral >= 50 ? '' : 'bad'}"><span>Coral in year 10</span><b class="mono">${last.coral}%</b></div><div class="${last.kg >= 20 ? '' : 'bad'}"><span>Catch in year 10</span><b class="mono">${last.kg} kg/day</b></div><div><span>Fishers' jobs</span><b class="mono">${d.boats * 2}</b></div><div class="${ok ? '' : 'warn'}"><span>Verdict</span><b>${ok ? 'Reef and fishers saved!' : 'Not there yet'}</b></div></div>` : ''}
         </div></div>
-      <div class="stage-tasks">${api.answered(['p1']) ? api.question(q) : ''}${api.answered(['p1', 'p2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Write the case summary</button></div>' : ''}</div>`;
+      <div class="stage-tasks">${api.answered(['p1']) || api.preview ? api.question(q) : ''}${api.answered(['p1', 'p2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Write the case summary</button></div>' : ''}</div>`;
     const b = el.querySelector('#boats');
     b.addEventListener('input', () => { el.querySelector('#boats-out').textContent = `${b.value} boats · ${b.value * 2} fishers' jobs`; });
     b.addEventListener('change', () => { d.boats = Number(b.value); d.shown = 0; api.save(); api.rerender(); });

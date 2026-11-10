@@ -206,7 +206,7 @@
     </div>
     <div class="stage-tasks">
       <h2>Find the pattern</h2>
-      ${ready ? `${api.question(q1)}${api.answered(['m1']) ? api.question(q2) : ''}
+      ${ready || api.preview ? `${api.question(q1)}${api.answered(['m1']) || api.preview ? api.question(q2) : ''}
         ${api.answered(['m1', 'm2']) ? `<div class="cq"><p class="cq-text">${esc(qp.text)}</p><div class="cq-options">${qp.options.map((o, i) => `<label class="${S.data.predict === i ? 'on' : ''}"><input type="radio" name="pred" value="${i}" ${S.data.predict === i ? 'checked' : ''}> ${esc(o)}</label>`).join('')}</div></div>
           <div class="actions"><button type="button" class="btn primary" id="to-lab" ${S.data.predict == null ? 'disabled' : ''}>Go to the water lab</button></div>` : ''}`
         : `<p class="muted">Interview at least 12 families to start looking for a pattern (${12 - nVisited} more).</p>`}
@@ -364,13 +364,13 @@
           <div class="scene-frame">${village(st, { flags: SAMPLE_PTS, taken: L.taken })}</div></div>
         <div class="scene-side"><h2>Collect water samples</h2><p data-read>${api.gloss('Tap each yellow flag to fill a sample bottle: the spring, a rain tank, the river above the bridge and the river below the toilet block.')}</p>
           <div class="shelf">${Object.keys(BOTTLES).map(b => `<div class="shelf-bottle ${L.taken.includes(b) ? 'full' : ''}">${bottleSVG(b, L.taken.includes(b) ? 70 : 0)}<span>${esc(BOTTLES[b].name)}</span></div>`).join('')}</div>
-          <div class="actions"><button type="button" class="btn primary" id="to-bench" ${L.taken.length === 4 ? '' : 'disabled'}>Take the samples to the lab</button></div></div>
+          <div class="actions"><button type="button" class="btn primary" id="to-bench" ${L.taken.length === 4 || api.preview ? '' : 'disabled'}>Take the samples to the lab</button></div></div>
       </div>`;
       el.querySelectorAll('[data-sample]').forEach(g => {
         const take = () => { if (!L.taken.includes(g.dataset.sample)) { L.taken.push(g.dataset.sample); api.save(); api.rerender(); } };
         g.addEventListener('click', take); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); take(); } });
       });
-      el.querySelector('#to-bench').addEventListener('click', () => { L.at = 'bench'; api.stepDone('collect'); api.save(); api.rerender(); });
+      el.querySelector('#to-bench').addEventListener('click', () => { if (api.preview) L.taken = ['spring', 'tank', 'up', 'down']; L.at = 'bench'; api.stepDone('collect'); api.save(); api.rerender(); });
       return;
     }
     const tools = { turbidity: 'Turbidity tube', ph: 'pH strip', culture: 'Culture plate', micro: 'Microscope' };
@@ -389,7 +389,7 @@
       ${notebook(L)}
     </div>
     <div class="stage-tasks"><h2>What did you find?</h2>
-      ${done ? `${predicted ? `<p class="note">Your prediction: <strong>${esc(predicted)}</strong>. Compare it with your lab notebook.</p>` : ''}${qs.map(q => api.question(q)).join('')}
+      ${done || api.preview ? `${predicted ? `<p class="note">Your prediction: <strong>${esc(predicted)}</strong>. Compare it with your lab notebook.</p>` : ''}${qs.map(q => api.question(q)).join('')}
         ${api.answered(['l1', 'l2', 'l3']) ? '<div class="actions"><button type="button" class="btn primary" id="to-h1">Next: make a hypothesis</button></div>' : ''}`
         : `<p class="note">The questions unlock when all 12 tests are done: every sample with the turbidity tube, the pH strip and the culture plate (${todo(L).length} still to do). Tap <strong>Test</strong> in the notebook, or <strong>Next test</strong>. The microscope is an extra.</p>`}
     </div>`;
@@ -569,7 +569,7 @@
       <div class="stage-tasks"><h2>Put the events in order</h2><p class="muted">Use the arrows to move each event. Start with what happened first.</p>
         <ol class="order">${st.order.map((ev, i) => `<li class="${api.answered(['h2a']) ? 'ok' : ''}"><span class="order-n mono">${i + 1}</span><span>${esc(EVENTS[ev])}</span>${api.answered(['h2a']) ? '' : `<span class="order-btns"><button type="button" class="btn small ghost" data-up="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Move up">↑</button><button type="button" class="btn small ghost" data-down="${i}" ${i === st.order.length - 1 ? 'disabled' : ''} aria-label="Move down">↓</button></span>`}</li>`).join('')}</ol>
         ${api.answered(['h2a']) ? '<p class="calc-fb ok">Correct. That chain of events explains the outbreak.</p>' : '<div class="actions"><button type="button" class="btn" id="check-order">Check the order</button></div><p class="calc-fb" id="order-fb" aria-live="polite"></p>'}
-        ${api.answered(['h2a']) ? api.question(qa) : ''}${api.answered(['h2a', 'h2b']) ? api.question(qb) : ''}
+        ${api.answered(['h2a']) || api.preview ? api.question(qa) : ''}${api.answered(['h2a', 'h2b']) ? api.question(qb) : ''}
         ${api.answered(['h2a', 'h2b', 'h2c']) ? '<div class="actions"><button type="button" class="btn primary" id="to-plant">Design the treatment plant</button></div>' : ''}
       </div>`;
     const day = el.querySelector('#day');
@@ -663,7 +663,7 @@
             <div class="${run.taste ? 'warn' : ''}"><span>Chlorine left in the water</span><b class="mono">${run.residual} mg/L</b></div>
             <div class="${run.safe && !run.taste && run.protect ? '' : 'warn'}"><span>Verdict</span><b>${!run.safe ? 'Not safe yet' : run.taste ? 'Safe, but tastes too strong' : !run.protect ? 'Safe now, but no protection in the pipes' : 'Safe and protected'}</b></div></div>` : ''}
         </div>`}
-      <div class="stage-tasks">${built && api.answered(['t3']) ? api.question(qa) : ''}${api.answered(['t1']) ? api.question(qb) : ''}
+      <div class="stage-tasks">${built && api.answered(['t3']) ? api.question(qa) : ''}${api.answered(['t1']) || api.preview ? api.question(qb) : ''}
         ${api.answered(['t1', 't2', 't3']) ? '<div class="actions"><button type="button" class="btn primary" id="to-summary">Write the case summary</button></div>' : ''}</div>`;
     el.querySelectorAll('[data-unit]').forEach(b => b.addEventListener('click', () => { st.pickU = st.pickU === b.dataset.unit ? null : b.dataset.unit; api.save(); api.rerender(); }));
     el.querySelectorAll('[data-slot]').forEach(g => {

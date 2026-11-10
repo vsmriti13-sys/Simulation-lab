@@ -157,7 +157,7 @@
           ${tableOk ? `<tr><th colspan="3">Total</th><th class="mono">4700 Wh</th></tr>` : ''}
         </tbody></table></div>
         ${tableOk ? '<p class="calc-fb ok">All correct!</p>' : allApps ? '<div class="actions"><button type="button" class="btn primary" id="check-audit">Check my audit</button></div><p class="calc-fb" id="audit-fb" aria-live="polite"></p>' : `<p class="note">Find all ${APPS.length} appliances to fill in the table (${APPS.length - apps.length} more).</p>`}
-        ${tableOk ? api.question(q) : ''}
+        ${tableOk || api.preview ? api.question(q) : ''}
         ${api.answered(['a1', 'a2']) ? (nClues === CLUES.length ? '<div class="actions"><button type="button" class="btn primary" id="next">Go to the energy lab</button></div>' : `<p class="note">Find all ${CLUES.length} clues before you leave (${CLUES.length - nClues} more): look at the fridge door, the roof, the tree and the battery.</p>`) : ''}</div>`;
     el.querySelectorAll('[data-spot]').forEach(g => { const pick = () => { st.sel = g.dataset.spot; st.found[st.sel] = true; api.save(); api.rerender(); }; g.addEventListener('click', pick); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }); });
     el.querySelectorAll('.wh-in').forEach(inp => inp.addEventListener('input', () => { st.vals[inp.dataset.wh] = inp.value; api.save(); }));
@@ -243,7 +243,7 @@
         ${PANEL_TESTS.map(([k, l]) => `<tr><th>Panel: ${esc(l)}</th><td class="mono">${L.results.panel[k] != null ? L.results.panel[k] + ' W' : '—'}</td></tr>`).join('')}
         ${Object.entries(BATT).map(([k, b]) => `<tr><th>Battery: ${esc(b.name)}</th><td class="mono">${L.results.batt[k] != null ? L.results.batt[k] + ' Wh' : '—'}</td></tr>`).join('')}
       </tbody></table></div></div>
-      <div class="stage-tasks"><h2>What did you find?</h2>${done ? qs.map(q => api.question(q)).join('') + (api.answered(['l1', 'l2', 'l3']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Work out the night budget</button></div>' : '') : '<p class="note">Finish all 6 tests to unlock the questions. Tap <strong>Next test</strong>.</p>'}</div>`;
+      <div class="stage-tasks"><h2>What did you find?</h2>${done || api.preview ? qs.map(q => api.question(q)).join('') + (api.answered(['l1', 'l2', 'l3']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Work out the night budget</button></div>' : '') : '<p class="note">Finish all 6 tests to unlock the questions. Tap <strong>Next test</strong>.</p>'}</div>`;
     el.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => { L.tool = b.dataset.tool; api.save(); api.rerender(); }));
     const nt = el.querySelector('#next-test');
     if (nt) nt.addEventListener('click', () => { const [tl, k] = todo[0]; L.tool = tl; if (tl === 'panel') { const [sky, dust, shade] = k.split('-'); L.p = { sky, dust, shade }; L.measured = null; } else { L.batt = k; L.ran = null; } api.save(); api.rerender(); el.querySelector('.bench').scrollIntoView({ block: 'start', behavior: 'smooth' }); });
@@ -311,7 +311,7 @@
           ${okCalc ? '<p class="calc-fb ok">Total night use: 2700 Wh. The battery starts the night with only 1600 Wh (and can never hold more than 2000 Wh).</p>' : `<label class="field"><span>Total energy used in one night (Wh)</span><input id="night-total" inputmode="numeric" value="${esc(st.val)}"></label><div class="actions"><button type="button" class="btn primary" id="check-night">Check</button></div><p class="calc-fb" id="night-fb" aria-live="polite"></p>`}
           <div class="calc-box">Battery left = 1600 Wh − 225 W × hours since 18:00</div>
         </div></div>
-      <div class="stage-tasks">${okCalc ? qs.map((q, i) => (i === 0 || api.answered([qs[i - 1].id])) ? api.question(q) : '').join('') : ''}${api.answered(['b1', 'b2', 'b3']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Sort the evidence</button></div>' : ''}</div>`;
+      <div class="stage-tasks">${okCalc || api.preview ? qs.map((q, i) => (i === 0 || api.answered([qs[i - 1].id])) ? api.question(q) : '').join('') : ''}${api.answered(['b1', 'b2', 'b3']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Sort the evidence</button></div>' : ''}</div>`;
     const sl = el.querySelector('#night-h');
     sl.addEventListener('input', () => { st.h = Number(sl.value); el.querySelector('.scene-frame').innerHTML = nightSVG(st.h); el.querySelector('#nh-out').textContent = hh(18 + st.h); });
     sl.addEventListener('change', () => { st.h = Number(sl.value); api.save(); });
@@ -346,7 +346,7 @@
       <div class="columns four">${Object.entries(ECOLS).map(([k, t]) => `<div class="ev-col" data-col="${k}" role="button" tabindex="0"><h3>${t}</h3>${CARDS.filter(c => st.place[c.id] === k).map(c => `<button type="button" class="ev-card placed ${st.wrong && st.wrong.includes(c.id) ? 'wrong' : ''}" data-back="${c.id}"><span aria-hidden="true">${c.icon}</span>${esc(c.text)}</button>`).join('')}</div>`).join('')}</div>
       <div class="actions"><button type="button" class="btn primary" id="check-board" ${all && !api.answered(['e1']) ? '' : 'disabled'}>Check my sorting</button></div>
       <p class="calc-fb ${api.answered(['e1']) ? 'ok' : ''}" id="board-fb" aria-live="polite">${api.answered(['e1']) ? 'Correct. Three problems add up: too much use at night, too little made, and too little stored.' : ''}</p></div>
-      <div class="stage-tasks">${api.answered(['e1']) ? api.question(q) : ''}${api.answered(['e1', 'e2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Design for the storm</button></div>' : ''}</div>`;
+      <div class="stage-tasks">${api.answered(['e1']) || api.preview ? api.question(q) : ''}${api.answered(['e1', 'e2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Design for the storm</button></div>' : ''}</div>`;
     el.querySelectorAll('[data-ev]').forEach(b => b.addEventListener('click', () => { st.pick = st.pick === b.dataset.ev ? null : b.dataset.ev; api.save(); api.rerender(); }));
     el.querySelectorAll('[data-col]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-back]') || !st.pick) return; st.place[st.pick] = c.dataset.col; st.pick = null; st.wrong = null; api.save(); api.rerender(); }));
     el.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => { if (api.answered(['e1'])) return; delete st.place[b.dataset.back]; st.wrong = null; api.save(); api.rerender(); }));
@@ -402,7 +402,7 @@
           ${over ? '<p class="note">Over budget. Remove something.</p>' : ''}
           ${shown === 72 ? `<div class="gauges"><div class="${off ? 'bad' : ''}"><span>Hours without power</span><b class="mono">${off}</b></div><div class="${maxT > 8 ? 'bad' : ''}"><span>Warmest fridge</span><b class="mono">${maxT} °C</b></div><div><span>Credits used</span><b class="mono">${c}</b></div><div class="${ok ? '' : 'warn'}"><span>Verdict</span><b>${ok ? 'Vaccines safe!' : 'Not there yet'}</b></div></div>` : ''}
         </div></div>
-      <div class="stage-tasks">${api.answered(['d1']) ? api.question(q) : ''}${api.answered(['d1', 'd2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Write the case summary</button></div>' : ''}</div>`;
+      <div class="stage-tasks">${api.answered(['d1']) || api.preview ? api.question(q) : ''}${api.answered(['d1', 'd2']) ? '<div class="actions"><button type="button" class="btn primary" id="next">Write the case summary</button></div>' : ''}</div>`;
     const changed = () => { d.shown = 0; api.save(); api.rerender(); };
     ['led', 'clean', 'trim', 'panels', 'wind', 'battery'].forEach(id => el.querySelector('#' + id).addEventListener('change', e => { d[id] = e.target.checked; changed(); }));
     el.querySelectorAll('input[name=fridge]').forEach(r => r.addEventListener('change', () => { d.fridge = r.value; changed(); }));

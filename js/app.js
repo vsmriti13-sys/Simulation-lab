@@ -129,6 +129,7 @@
     const s = OI.store.get();
     return `<div class="teacher"><header class="mission-head"><div><p class="eyebrow">Guided virtual labs</p><h1 class="display">Case Files</h1></div>
       <p class="lede">Shorter, guided investigations: collect evidence, run experiments, test hypotheses and close the case. Each case has a handbook, a glossary, coach tips and read-aloud.</p></header>
+      <div class="preview-row"><button type="button" class="btn ghost preview-btn" id="cases-preview" aria-pressed="${!!s.preview}">${s.preview ? 'Teacher preview: on' : 'Teacher preview: off'}</button><span class="muted">For teachers: switch it on to open every stage of every case straight away, without finishing the tests. Switch it off again before learners start.</span></div>
       ${caseCards(s)}</div>`;
   }
 
@@ -333,7 +334,7 @@
     else if (view === 'case2') { current = OI.cases.hall; current.mount(main); }
     else if (view === 'case3') { current = OI.cases.reef; current.mount(main); }
     else if (view === 'case4') { current = OI.cases.fridge; current.mount(main); }
-    else if (view === 'cases') { main.innerHTML = casesPage(); }
+    else if (view === 'cases') { main.innerHTML = casesPage(); main.querySelector('#cases-preview').addEventListener('click', () => { const s = OI.store.get(); s.preview = !s.preview; OI.store.save(); route(); }); }
     else { main.innerHTML = hub(); mountHub(main); }
     const team = OI.store.get().team.name;
     document.getElementById('team-chip').textContent = team ? 'Team: ' + team : '';

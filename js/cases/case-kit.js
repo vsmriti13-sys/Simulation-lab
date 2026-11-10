@@ -15,7 +15,7 @@
     let tab = 'case', coachList = [], coachIdx = 0, onRender = null;
 
     const stageIdx = id => def.stages.findIndex(s => s.id === id);
-    const unlocked = id => { const i = stageIdx(id); return i === 0 || (!def.stages[i].locked && !!S.done[def.stages[i - 1].id]); };
+    const unlocked = id => { const i = stageIdx(id); return i === 0 || (!def.stages[i].locked && !!store.preview) || (!def.stages[i].locked && !!S.done[def.stages[i - 1].id]); };
     const maxScore = () => def.stages.reduce((a, s) => a + (s.points || 0), 0);
     const score = () => Object.values(S.answers).reduce((a, x) => a + (x.points || 0), 0);
 
@@ -126,8 +126,10 @@
             ${canSpeak ? `<button type="button" class="btn small ghost" id="read-btn" aria-pressed="${S.read}">${S.read ? 'Read aloud: on' : 'Read aloud: off'}</button>` : ''}
             <button type="button" class="btn small ghost" id="gloss-btn">Glossary</button>
             <button type="button" class="btn small ghost" id="tips-btn">Show tips</button>
+            <button type="button" class="btn small ghost preview-btn" id="preview-btn" aria-pressed="${!!store.preview}">${store.preview ? 'Teacher preview: on' : 'Teacher preview: off'}</button>
           </div>
         </div>
+        <p class="preview-banner" id="preview-banner" ${store.preview ? '' : 'hidden'}>Teacher preview is on: every stage is open and the questions are unlocked, so you can jump anywhere. Turn it off before learners use this device.</p>
         <div class="case-body">
           <section class="case-stage" id="case-stage" aria-live="polite"></section>
           <aside class="case-side">
@@ -148,6 +150,13 @@
         p.hidden = !p.hidden;
         p.innerHTML = `<div class="gloss-head"><h2>Glossary</h2><button type="button" class="btn small ghost" id="gloss-close">Close</button></div><dl>${Object.keys(def.glossary).sort().map(t => `<div><dt>${esc(t.charAt(0).toUpperCase() + t.slice(1))}</dt><dd>${esc(def.glossary[t])}</dd></div>`).join('')}</dl>`;
         p.querySelector('#gloss-close').addEventListener('click', () => { p.hidden = true; });
+      });
+      root.querySelector('#preview-btn').addEventListener('click', () => {
+        store.preview = !store.preview; save();
+        const b = root.querySelector('#preview-btn'); b.textContent = store.preview ? 'Teacher preview: on' : 'Teacher preview: off'; b.setAttribute('aria-pressed', String(!!store.preview));
+        root.querySelector('#preview-banner').hidden = !store.preview;
+        if (!unlocked(S.stage)) S.stage = def.stages[0].id;
+        renderStage();
       });
       root.querySelector('#tips-btn').addEventListener('click', () => { const st = def.stages[stageIdx(S.stage)]; startCoach(st.coach, true); });
       const caseEl = root.querySelector('#case');
@@ -193,6 +202,7 @@
     }
     const api = {
       S, save, gloss, esc, question, bindQuestions, answered, say, go,
+      get preview() { return !!store.preview; },
       stepDone(id) { S.data.stepDone = S.data.stepDone || {}; if (!S.data.stepDone[id]) { S.data.stepDone[id] = true; save(); side(); } },
       // award points for a task other than a question: 2 on the first try, 1 after that
       award(id, firstTry) { if (S.answers[id] && S.answers[id].correct) return; S.answers[id] = { correct: true, points: firstTry ? 2 : 1 }; save(); side(); },
